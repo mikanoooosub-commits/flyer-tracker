@@ -1,16 +1,17 @@
 import { AppHeader } from "@/components/app-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { SchoolManager } from "@/components/schools/school-manager";
+import { getSchools } from "@/lib/data/queries";
 
-export default function SchoolsPage() {
+export const dynamic = "force-dynamic";
+
+export default async function SchoolsPage() {
+  const schools = await getSchools();
+
   return (
     <>
       <AppHeader title="小学校マスタ" subtitle="対象小学校の管理" />
       <main className="px-4 py-4">
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            小学校マスタ管理（Phase 5 で実装）
-          </CardContent>
-        </Card>
+        <SchoolManager schools={schools} />
       </main>
     </>
   );
