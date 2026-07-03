@@ -140,8 +140,8 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         </div>
       )}
 
-      {/* 地図本体 */}
-      <div className="h-[calc(100dvh-12.5rem)] w-full overflow-hidden">
+      {/* 地図本体（isolate で Leaflet の高い z-index を閉じ込め、ダイアログを前面に保つ） */}
+      <div className="relative z-0 h-[calc(100dvh-12.5rem)] w-full overflow-hidden [isolation:isolate]">
         <FlyerMap
           placedLocations={placedLocations}
           ratings={ratings}
