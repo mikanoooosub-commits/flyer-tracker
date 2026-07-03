@@ -55,6 +55,31 @@ npm run dev
 /map         地図タブ（ピン表示・配置・履歴追加）
 /schools     小学校マスタ管理
 /login       ログイン（マジックリンク）
+/auth/confirm  マジックリンクのコールバック
 ```
+
+## はじめての起動チェックリスト
+
+1. `npm install`
+2. Supabase プロジェクトを作成し、`supabase/schema.sql` を SQL Editor で実行
+3. `.env.local` に `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` を設定
+4. Supabase の **Authentication > URL Configuration** に以下を登録
+   - Site URL: `http://localhost:3000`（本番は本番URL）
+   - Redirect URLs: `http://localhost:3000/auth/confirm`（本番URLの `/auth/confirm` も）
+5. `npm run dev` → `http://localhost:3000` を開く
+6. 未ログインなら `/login` にリダイレクトされる。メールを入力しログインリンクを受信 → クリックでログイン
+7. 「小学校」タブで小学校を1件登録 → 「一覧」タブで配布実績を登録 → 「地図に配置」または「地図」タブで座標を紐付け
+
+> マジックリンクは Supabase 標準の PKCE（`?code=` 付き）と `token_hash` 形式の両方に対応しています。
+> 標準のメールテンプレートのままで動作します。
+
+## 動作確認の観点
+
+- 未ログインで任意URL → `/login` にリダイレクトされる
+- ログイン後、配布実績を登録するとトリガーにより `visit_logs` に `create` が記録される
+- 編集すると `update`、削除すると `delete` が記録され、「変更履歴」から確認できる
+- 削除は論理削除。「削除済みを表示」で一覧に出て、復元できる
+- 地図のピン色が、その場所の直近評価（緑=良好 / グレー=普通 / 赤=非推奨）で変わる
+- 別ブラウザ（未ログイン）ではデータが一切取得できない（RLS）
 
 詳細な要件は [REQUIREMENTS.md](./REQUIREMENTS.md) を参照。
