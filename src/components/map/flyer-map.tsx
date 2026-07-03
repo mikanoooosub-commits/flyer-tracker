@@ -19,15 +19,18 @@ const RATING_COLOR: Record<Rating | "none", string> = {
 
 function makePinIcon(rating: Rating | null) {
   const color = RATING_COLOR[rating ?? "none"];
-  const html = `<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 25 15 25s15-15 15-25C30 6.7 23.3 0 15 0z" fill="${color}" stroke="white" stroke-width="2"/>
-    <circle cx="15" cy="15" r="5.5" fill="white"/>
-  </svg>`;
+  // 透明な余白（padding 8px）で当たり判定を広げ、カーソルを合わせやすくする
+  const html = `<div style="width:50px;height:52px;padding:8px;box-sizing:border-box;display:flex;justify-content:center;">
+    <svg width="34" height="44" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 25 15 25s15-15 15-25C30 6.7 23.3 0 15 0z" fill="${color}" stroke="white" stroke-width="2"/>
+      <circle cx="15" cy="15" r="5.5" fill="white"/>
+    </svg>
+  </div>`;
   return L.divIcon({
     html,
     className: "flyer-pin",
-    iconSize: [30, 40],
-    iconAnchor: [15, 40],
+    iconSize: [50, 52],
+    iconAnchor: [25, 52], // ピン先端（下端中央）を座標に合わせる
   });
 }
 
@@ -79,7 +82,7 @@ export default function FlyerMap({
               click: () => onPinClick(loc.id),
             }}
           >
-            <Tooltip permanent direction="top" offset={[0, -38]} className="flyer-label">
+            <Tooltip permanent direction="top" offset={[0, -46]} className="flyer-label">
               {schoolName}
             </Tooltip>
             <Popup autoPan={false} closeButton={false} className="flyer-history-popup">
