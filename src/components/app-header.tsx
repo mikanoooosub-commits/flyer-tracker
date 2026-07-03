@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { ChevronLeft, MapPin } from "lucide-react";
 
+import { AccountMenu } from "@/components/account-menu";
+
 type Props = {
   title: string;
   subtitle?: string;
   backHref?: string;
-  action?: React.ReactNode;
+  /** 右側に表示する要素。省略時はログアウトメニュー。null を渡すと非表示。 */
+  action?: React.ReactNode | null;
 };
 
 export function AppHeader({ title, subtitle, backHref, action }: Props) {
@@ -29,7 +32,7 @@ export function AppHeader({ title, subtitle, backHref, action }: Props) {
           <h1 className="truncate text-base font-extrabold leading-tight">{title}</h1>
           {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
         </div>
-        {action}
+        {action === undefined ? <AccountMenu /> : action}
       </div>
     </header>
   );
