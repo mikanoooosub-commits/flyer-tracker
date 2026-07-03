@@ -1,0 +1,138 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 0.9rem;
+
+  /* すっきり・実用寄りのニュートラルトーン */
+  --background: oklch(0.98 0.004 260);
+  --foreground: oklch(0.26 0.02 260);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.26 0.02 260);
+
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.26 0.02 260);
+
+  --primary: oklch(0.55 0.16 255);
+  --primary-foreground: oklch(0.99 0.005 260);
+
+  --secondary: oklch(0.95 0.01 260);
+  --secondary-foreground: oklch(0.32 0.03 260);
+
+  --muted: oklch(0.96 0.006 260);
+  --muted-foreground: oklch(0.53 0.02 260);
+
+  --accent: oklch(0.95 0.02 255);
+  --accent-foreground: oklch(0.34 0.05 260);
+
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(0.99 0.005 260);
+
+  --border: oklch(0.91 0.008 260);
+  --input: oklch(0.92 0.008 260);
+  --ring: oklch(0.55 0.16 255);
+
+  --chart-1: oklch(0.55 0.16 255);
+  --chart-2: oklch(0.65 0.16 150);
+  --chart-3: oklch(0.7 0.15 60);
+  --chart-4: oklch(0.6 0.2 25);
+  --chart-5: oklch(0.6 0.12 300);
+
+  /* 評価に対応するピン／バッジ色 */
+  --rating-good: oklch(0.62 0.16 150);   /* 緑：良好 */
+  --rating-normal: oklch(0.68 0.01 260); /* グレー：普通 */
+  --rating-bad: oklch(0.6 0.2 25);       /* 赤：非推奨 */
+}
+
+.dark {
+  --background: oklch(0.22 0.01 260);
+  --foreground: oklch(0.95 0.005 260);
+
+  --card: oklch(0.27 0.012 260);
+  --card-foreground: oklch(0.95 0.005 260);
+
+  --popover: oklch(0.27 0.012 260);
+  --popover-foreground: oklch(0.95 0.005 260);
+
+  --primary: oklch(0.62 0.16 255);
+  --primary-foreground: oklch(0.18 0.02 260);
+
+  --secondary: oklch(0.33 0.02 260);
+  --secondary-foreground: oklch(0.95 0.005 260);
+
+  --muted: oklch(0.3 0.015 260);
+  --muted-foreground: oklch(0.7 0.02 260);
+
+  --accent: oklch(0.36 0.04 260);
+  --accent-foreground: oklch(0.95 0.005 260);
+
+  --destructive: oklch(0.62 0.2 25);
+  --destructive-foreground: oklch(0.95 0.005 260);
+
+  --border: oklch(0.4 0.02 260 / 50%);
+  --input: oklch(0.4 0.02 260 / 50%);
+  --ring: oklch(0.62 0.16 255);
+
+  --rating-good: oklch(0.66 0.16 150);
+  --rating-normal: oklch(0.6 0.01 260);
+  --rating-bad: oklch(0.62 0.2 25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-rating-good: var(--rating-good);
+  --color-rating-normal: var(--rating-normal);
+  --color-rating-bad: var(--rating-bad);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans: var(--font-mplus-rounded), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
