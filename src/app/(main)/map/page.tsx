@@ -1,17 +1,32 @@
 import { AppHeader } from "@/components/app-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { MapView } from "@/components/map/map-view";
+import {
+  getSchools,
+  getLocationsWithSchool,
+  getPinStatuses,
+  getVisits,
+} from "@/lib/data/queries";
+import type { Rating } from "@/lib/types";
 
-export default function MapPage() {
+export const dynamic = "force-dynamic";
+
+export default async function MapPage() {
+  const [schools, locations, pinStatuses, visits] = await Promise.all([
+    getSchools(),
+    getLocationsWithSchool(),
+    getPinStatuses(),
+    getVisits({}),
+  ]);
+
+  const ratings: Record<string, Rating | null> = {};
+  for (const p of pinStatuses) {
+    ratings[p.location_id] = p.latest_rating;
+  }
+
   return (
     <>
       <AppHeader title="地図" subtitle="配布場所のピン" />
-      <main className="px-4 py-4">
-        <Card>
-          <CardContent className="py-8 text-center text-sm text-muted-foreground">
-            地図タブ（Phase 4 で実装）
-          </CardContent>
-        </Card>
-      </main>
+      <MapView schools={schools} locations={locations} ratings={ratings} visits={visits} />
     </>
   );
 }

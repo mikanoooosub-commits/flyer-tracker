@@ -136,3 +136,23 @@
     scrollbar-width: none;
   }
 }
+
+/* ── Leaflet 地図まわりの調整 ─────────────────────────────────────────── */
+.flyer-pin {
+  background: transparent;
+  border: none;
+}
+.leaflet-tooltip.flyer-label {
+  background: rgba(255, 255, 255, 0.92);
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #111;
+  white-space: nowrap;
+}
+.leaflet-tooltip.flyer-label::before {
+  display: none; /* 吹き出しの三角を隠す */
+}

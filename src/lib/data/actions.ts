@@ -162,6 +162,31 @@ export async function setLocationCoordsAction(
   }
 }
 
+/** 地図クリックで、座標付きの新規 location を作成する */
+export async function createLocationAtAction(
+  schoolId: string,
+  spot: string,
+  lat: number,
+  lng: number
+): Promise<ActionResult & { locationId?: string }> {
+  try {
+    if (!schoolId) return { ok: false, error: "小学校を選択してください" };
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("locations")
+      .insert({ school_id: schoolId, spot: spot.trim(), lat, lng })
+      .select("id")
+      .single();
+    if (error) throw error;
+
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true, locationId: data.id as string };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "作成に失敗しました" };
+  }
+}
+
 // ── 小学校マスタ（Phase 5 で利用） ──────────────────────────────────────────
 
 export async function addSchoolAction(name: string): Promise<ActionResult> {

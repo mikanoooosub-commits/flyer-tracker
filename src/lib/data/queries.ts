@@ -70,6 +70,18 @@ export async function getLocations(): Promise<Location[]> {
   return (data ?? []) as Location[];
 }
 
+export type LocationWithSchool = Location & { school: School | null };
+
+export async function getLocationsWithSchool(): Promise<LocationWithSchool[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*, school:schools(*)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as LocationWithSchool[];
+}
+
 export async function getPinStatuses(): Promise<LocationPinStatus[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("location_pin_status").select("*");
