@@ -179,6 +179,22 @@ left join public.visits v
 order by l.id, v.date desc nulls last, v.start_time desc nulls last;
 
 -- ============================================================================
+-- Data API への権限付与（GRANT）
+--   Supabase の「Automatically expose new tables」を OFF にしていても
+--   アプリ（authenticated ロール）からアクセスできるよう、明示的に付与する。
+--   anon（未認証）には一切付与しない＝未ログインはアクセス不可。
+--   実際の行レベルの可否は後述の RLS ポリシーで制御する。
+-- ============================================================================
+grant usage on schema public to authenticated;
+
+grant select, insert, update, delete on public.schools    to authenticated;
+grant select, insert, update, delete on public.locations  to authenticated;
+grant select, insert, update          on public.visits     to authenticated; -- DELETE は付与しない
+grant select                          on public.visit_logs to authenticated; -- 書き込みはトリガー経由のみ
+grant select, update                  on public.profiles   to authenticated;
+grant select                          on public.location_pin_status to authenticated;
+
+-- ============================================================================
 -- Row Level Security（RLS）
 --   方針: 認証済み（authenticated）ユーザーはチームで共有・相互編集できる。
 --         未認証（anon）ロールは一切アクセス不可。
