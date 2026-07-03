@@ -45,6 +45,8 @@ export function VisitRow({
     count: visit.count,
     rating: visit.rating,
     memo: visit.memo,
+    lat: visit.location?.lat ?? null,
+    lng: visit.location?.lng ?? null,
   };
 
   function toggleDeleted(isDeleted: boolean) {

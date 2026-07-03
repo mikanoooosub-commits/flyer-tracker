@@ -16,6 +16,8 @@ export const RATING_ORDER: Rating[] = ["good", "normal", "bad"];
 export type School = {
   id: string;
   name: string;
+  lat: number | null;
+  lng: number | null;
   created_at: string;
 };
 
@@ -81,6 +83,8 @@ export type VisitInput = {
   count: number | null;
   rating: Rating;
   memo: string | null;
+  lat: number | null;
+  lng: number | null;
 };
 
 export type ActionResult = { ok: true } | { ok: false; error: string };

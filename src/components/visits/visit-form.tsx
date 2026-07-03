@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 
+import { LocationPicker } from "@/components/map/location-picker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +23,8 @@ import {
   type ActionResult,
 } from "@/lib/types";
 import { todayISO } from "@/lib/format";
+
+const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
 
 type Props = {
   schools: School[];
@@ -50,8 +53,24 @@ export function VisitForm({
   );
   const [rating, setRating] = useState<Rating>(initial?.rating ?? "normal");
   const [memo, setMemo] = useState(initial?.memo ?? "");
+  const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(
+    initial?.lat != null && initial?.lng != null
+      ? { lat: initial.lat, lng: initial.lng }
+      : null
+  );
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+
+  // 選択中の小学校に座標があれば、その位置を地図の中心にする
+  const mapCenter = useMemo(() => {
+    const s = schools.find((x) => x.id === schoolId);
+    if (s?.lat != null && s?.lng != null) return { lat: s.lat, lng: s.lng };
+    if (initial?.lat != null && initial?.lng != null) {
+      return { lat: initial.lat, lng: initial.lng };
+    }
+    return DEFAULT_CENTER;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [schoolId, schools]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,6 +94,8 @@ export function VisitForm({
       count: count.trim() === "" ? null : Number(count),
       rating,
       memo: memo.trim() || null,
+      lat: latLng?.lat ?? null,
+      lng: latLng?.lng ?? null,
     };
 
     startTransition(async () => {
@@ -119,6 +140,20 @@ export function VisitForm({
           value={spot}
           onChange={(e) => setSpot(e.target.value)}
         />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <Label>地図上の位置</Label>
+        <LocationPicker
+          value={latLng}
+          center={mapCenter}
+          onChange={(lat, lng) => setLatLng({ lat, lng })}
+        />
+        <p className="text-xs text-muted-foreground">
+          {latLng
+            ? `緯度 ${latLng.lat.toFixed(5)} / 経度 ${latLng.lng.toFixed(5)}（タップまたはピンをドラッグで調整）`
+            : "地図をタップして配布場所の位置を指定（小学校を選ぶとその付近が表示されます）"}
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">

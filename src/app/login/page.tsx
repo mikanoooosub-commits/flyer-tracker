@@ -26,6 +26,8 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
+          // 事前に登録されたメンバーのみログイン可（新規サインアップは不可）
+          shouldCreateUser: false,
           emailRedirectTo: `${window.location.origin}/auth/confirm`,
         },
       });
@@ -33,9 +35,15 @@ export default function LoginPage() {
       setStatus("sent");
     } catch (err) {
       setStatus("error");
-      setMessage(
-        err instanceof Error ? err.message : "送信に失敗しました。時間をおいて再度お試しください。"
-      );
+      const raw = err instanceof Error ? err.message : "";
+      // 未登録メールの場合は Supabase が Signups not allowed 系のエラーを返す
+      if (/signup|not allowed|not found|disabled/i.test(raw)) {
+        setMessage(
+          "このメールアドレスは登録されていません。管理者に招待を依頼してください。"
+        );
+      } else {
+        setMessage(raw || "送信に失敗しました。時間をおいて再度お試しください。");
+      }
     }
   }
 

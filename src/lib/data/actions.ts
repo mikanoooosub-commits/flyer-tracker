@@ -35,10 +35,23 @@ async function resolveLocationId(
 
 // ── 配布履歴 ────────────────────────────────────────────────────────────────
 
+/** 座標が指定されていれば location に反映する */
+async function applyCoords(
+  supabase: SupabaseClient,
+  locationId: string,
+  lat: number | null,
+  lng: number | null
+) {
+  if (lat != null && lng != null) {
+    await supabase.from("locations").update({ lat, lng }).eq("id", locationId);
+  }
+}
+
 export async function createVisitAction(input: VisitInput): Promise<ActionResult> {
   try {
     const supabase = await createClient();
     const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
+    await applyCoords(supabase, locationId, input.lat, input.lng);
 
     const { error } = await supabase.from("visits").insert({
       location_id: locationId,
@@ -66,6 +79,7 @@ export async function updateVisitAction(
   try {
     const supabase = await createClient();
     const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
+    await applyCoords(supabase, locationId, input.lat, input.lng);
 
     const { error } = await supabase
       .from("visits")
@@ -189,19 +203,46 @@ export async function createLocationAtAction(
 
 // ── 小学校マスタ（Phase 5 で利用） ──────────────────────────────────────────
 
-export async function addSchoolAction(name: string): Promise<ActionResult> {
+export async function addSchoolAction(
+  name: string,
+  lat: number | null = null,
+  lng: number | null = null
+): Promise<ActionResult> {
   try {
     const trimmed = name.trim();
     if (!trimmed) return { ok: false, error: "小学校名を入力してください" };
     const supabase = await createClient();
-    const { error } = await supabase.from("schools").insert({ name: trimmed });
+    const { error } = await supabase.from("schools").insert({ name: trimmed, lat, lng });
     if (error) throw error;
 
     revalidatePath("/schools");
     revalidatePath("/");
+    revalidatePath("/map");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "追加に失敗しました" };
+  }
+}
+
+export async function updateSchoolCoordsAction(
+  schoolId: string,
+  lat: number,
+  lng: number
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("schools")
+      .update({ lat, lng })
+      .eq("id", schoolId);
+    if (error) throw error;
+
+    revalidatePath("/schools");
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "座標の更新に失敗しました" };
   }
 }
 

@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MapPin, Plus, X, Crosshair } from "lucide-react";
+import { MapPin, Plus, X, Crosshair, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { LocationPicker } from "@/components/map/location-picker";
 import { VisitForm } from "@/components/visits/visit-form";
 import {
   createVisitAction,
@@ -57,8 +58,9 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [addingVisit, setAddingVisit] = useState(false);
+  const [editingCoords, setEditingCoords] = useState(false);
   const [newLoc, setNewLoc] = useState<{ lat: number; lng: number } | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [placeDraft, setPlaceDraft] = useState<{ lat: number; lng: number } | null>(null);
 
   const placedLocations = useMemo(
     () => locations.filter((l) => l.lat != null && l.lng != null),
@@ -87,14 +89,16 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
 
   function handleMapClick(lat: number, lng: number) {
     if (placeId) {
-      startTransition(async () => {
-        await setLocationCoordsAction(placeId, lat, lng);
-        router.replace("/map");
-        router.refresh();
-      });
+      setPlaceDraft({ lat, lng });
     } else {
       setNewLoc({ lat, lng });
     }
+  }
+
+  function closePanel() {
+    setSelectedId(null);
+    setAddingVisit(false);
+    setEditingCoords(false);
   }
 
   return (
@@ -116,12 +120,7 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
         <div className="mx-4 mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
           <Crosshair className="size-4 shrink-0 text-primary" />
           <span className="flex-1">地図をタップして、この配布場所の位置を指定してください</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.replace("/map")}
-            disabled={pending}
-          >
+          <Button variant="ghost" size="sm" onClick={() => router.replace("/map")}>
             <X className="size-4" />
           </Button>
         </div>
@@ -137,6 +136,7 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
           onPinClick={(id) => {
             setSelectedId(id);
             setAddingVisit(false);
+            setEditingCoords(false);
           }}
         />
       </div>
@@ -148,7 +148,7 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
       )}
 
       {/* ピンの詳細パネル */}
-      <Dialog open={selected !== null} onOpenChange={(o) => !o && setSelectedId(null)}>
+      <Dialog open={selected !== null} onOpenChange={(o) => !o && closePanel()}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto">
           {selected && (
             <>
@@ -166,22 +166,46 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
               {addingVisit ? (
                 <VisitForm
                   schools={schools}
-                  initial={{ schoolId: selected.school_id ?? "", spot: selected.spot ?? "" }}
+                  initial={{
+                    schoolId: selected.school_id ?? "",
+                    spot: selected.spot ?? "",
+                    lat: selected.lat,
+                    lng: selected.lng,
+                  }}
                   submitLabel="追加する"
                   onSubmit={createVisitAction}
                   onSuccess={() => {
-                    setAddingVisit(false);
-                    setSelectedId(null);
+                    closePanel();
                     router.refresh();
                   }}
                   onCancel={() => setAddingVisit(false)}
                 />
+              ) : editingCoords ? (
+                <EditCoordsPanel
+                  location={selected}
+                  onDone={() => {
+                    setEditingCoords(false);
+                    router.refresh();
+                  }}
+                  onCancel={() => setEditingCoords(false)}
+                />
               ) : (
                 <>
                   <div className="flex flex-col gap-2">
-                    <p className="text-xs font-bold text-muted-foreground">
-                      配布履歴（{selectedVisits.length}件）
-                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-bold text-muted-foreground">
+                        配布履歴（{selectedVisits.length}件）
+                      </p>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="gap-1.5 text-muted-foreground"
+                        onClick={() => setEditingCoords(true)}
+                      >
+                        <Pencil className="size-3.5" />
+                        位置を修正
+                      </Button>
+                    </div>
                     {selectedVisits.length === 0 ? (
                       <p className="py-2 text-sm text-muted-foreground">まだ履歴はありません</p>
                     ) : (
@@ -229,6 +253,20 @@ export function MapView({ schools, locations, ratings, visits }: Props) {
           router.refresh();
         }}
       />
+
+      {/* 配置モード: 位置を調整して決定 */}
+      <PlaceConfirmDialog
+        coords={placeDraft}
+        onClose={() => setPlaceDraft(null)}
+        onConfirm={(lat, lng) => {
+          if (!placeId) return;
+          setPlaceDraft(null);
+          setLocationCoordsAction(placeId, lat, lng).then(() => {
+            router.replace("/map");
+            router.refresh();
+          });
+        }}
+      />
     </div>
   );
 }
@@ -243,6 +281,102 @@ function LegendDot({ rating }: { rating: Rating }) {
   );
 }
 
+function EditCoordsPanel({
+  location,
+  onDone,
+  onCancel,
+}: {
+  location: LocationWithSchool;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const [pos, setPos] = useState<{ lat: number; lng: number }>({
+    lat: location.lat as number,
+    lng: location.lng as number,
+  });
+  const [pending, startTransition] = useTransition();
+
+  function handleSave() {
+    startTransition(async () => {
+      await setLocationCoordsAction(location.id, pos.lat, pos.lng);
+      onDone();
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm font-bold">位置を修正</p>
+      <LocationPicker value={pos} center={pos} onChange={(lat, lng) => setPos({ lat, lng })} />
+      <p className="text-xs text-muted-foreground">
+        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（タップまたはドラッグで調整）
+      </p>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onCancel} disabled={pending}>
+          キャンセル
+        </Button>
+        <Button className="flex-1" onClick={handleSave} disabled={pending}>
+          {pending ? "保存中…" : "この位置で保存"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function PlaceConfirmDialog({
+  coords,
+  onClose,
+  onConfirm,
+}: {
+  coords: { lat: number; lng: number } | null;
+  onClose: () => void;
+  onConfirm: (lat: number, lng: number) => void;
+}) {
+  return (
+    <Dialog open={coords !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>この位置で決定しますか？</DialogTitle>
+        </DialogHeader>
+        {coords && (
+          <PlaceConfirmBody
+            initial={coords}
+            onConfirm={onConfirm}
+            onClose={onClose}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function PlaceConfirmBody({
+  initial,
+  onConfirm,
+  onClose,
+}: {
+  initial: { lat: number; lng: number };
+  onConfirm: (lat: number, lng: number) => void;
+  onClose: () => void;
+}) {
+  const [pos, setPos] = useState(initial);
+  return (
+    <>
+      <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
+      <p className="text-xs text-muted-foreground">
+        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（タップまたはドラッグで微調整）
+      </p>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onClose}>
+          キャンセル
+        </Button>
+        <Button className="flex-1" onClick={() => onConfirm(pos.lat, pos.lng)}>
+          この位置で決定
+        </Button>
+      </div>
+    </>
+  );
+}
+
 function NewLocationDialog({
   schools,
   coords,
@@ -254,76 +388,95 @@ function NewLocationDialog({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  return (
+    <Dialog open={coords !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[85dvh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>この地点に配布場所を登録</DialogTitle>
+        </DialogHeader>
+        {coords && (
+          <NewLocationBody
+            schools={schools}
+            initial={coords}
+            onCreated={onCreated}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function NewLocationBody({
+  schools,
+  initial,
+  onCreated,
+}: {
+  schools: School[];
+  initial: { lat: number; lng: number };
+  onCreated: () => void;
+}) {
   const [schoolId, setSchoolId] = useState("");
   const [spot, setSpot] = useState("");
+  const [pos, setPos] = useState(initial);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
   function handleCreate() {
     setError("");
-    if (!coords) return;
     if (!schoolId) {
       setError("小学校を選択してください");
       return;
     }
     startTransition(async () => {
-      const result = await createLocationAtAction(schoolId, spot, coords.lat, coords.lng);
-      if (result.ok) {
-        setSchoolId("");
-        setSpot("");
-        onCreated();
-      } else {
-        setError(result.error);
-      }
+      const result = await createLocationAtAction(schoolId, spot, pos.lat, pos.lng);
+      if (result.ok) onCreated();
+      else setError(result.error);
     });
   }
 
   return (
-    <Dialog open={coords !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>この地点に配布場所を登録</DialogTitle>
-        </DialogHeader>
-        {coords && (
-          <p className="text-xs text-muted-foreground">
-            緯度 {coords.lat.toFixed(5)} / 経度 {coords.lng.toFixed(5)}
-          </p>
-        )}
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="nl-school">対象小学校</Label>
-          <Select value={schoolId} onValueChange={setSchoolId}>
-            <SelectTrigger id="nl-school">
-              <SelectValue placeholder="小学校を選択" />
-            </SelectTrigger>
-            <SelectContent>
-              {schools.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-muted-foreground">
-                  「小学校」タブで先に登録してください
-                </div>
-              ) : (
-                schools.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name}
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="nl-spot">立ち位置</Label>
-          <Input
-            id="nl-spot"
-            placeholder="例: 正門西側"
-            value={spot}
-            onChange={(e) => setSpot(e.target.value)}
-          />
-        </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button onClick={handleCreate} disabled={pending}>
-          {pending ? "登録中…" : "配布場所を登録"}
-        </Button>
-      </DialogContent>
-    </Dialog>
+    <>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="nl-school">対象小学校</Label>
+        <Select value={schoolId} onValueChange={setSchoolId}>
+          <SelectTrigger id="nl-school">
+            <SelectValue placeholder="小学校を選択" />
+          </SelectTrigger>
+          <SelectContent>
+            {schools.length === 0 ? (
+              <div className="px-3 py-2 text-sm text-muted-foreground">
+                「小学校」タブで先に登録してください
+              </div>
+            ) : (
+              schools.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="nl-spot">立ち位置</Label>
+        <Input
+          id="nl-spot"
+          placeholder="例: 正門西側"
+          value={spot}
+          onChange={(e) => setSpot(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label>位置（タップ／ドラッグで調整）</Label>
+        <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
+        <p className="text-xs text-muted-foreground">
+          緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
+        </p>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <Button onClick={handleCreate} disabled={pending}>
+        {pending ? "登録中…" : "この位置で配布場所を登録"}
+      </Button>
+    </>
   );
 }

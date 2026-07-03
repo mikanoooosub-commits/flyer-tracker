@@ -12,8 +12,13 @@ create extension if not exists "pgcrypto";  -- gen_random_uuid() 用
 create table if not exists public.schools (
   id         uuid primary key default gen_random_uuid(),
   name       text not null,
+  lat        double precision,  -- 小学校のおおよその座標（任意）
+  lng        double precision,
   created_at timestamptz not null default now()
 );
+-- 既存DB向け: 後から座標カラムを追加（何度実行してもよい）
+alter table public.schools add column if not exists lat double precision;
+alter table public.schools add column if not exists lng double precision;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- 4-1. locations（配布場所マスタ）
