@@ -56,8 +56,7 @@ export function LocationPicker({
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  async function handleSearch(e?: React.FormEvent) {
-    e?.preventDefault();
+  async function handleSearch() {
     const q = query.trim();
     if (!q) return;
     setSearching(true);
@@ -89,18 +88,32 @@ export function LocationPicker({
     <div className="flex flex-col gap-2">
       {searchable && (
         <div className="flex flex-col gap-1.5">
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <div className="flex gap-2">
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  // 外側フォームの送信を防ぎ、検索だけ実行する
+                  e.preventDefault();
+                  handleSearch();
+                }
+              }}
               placeholder="住所・学校名・施設名で検索"
               className="h-9"
             />
-            <Button type="submit" size="sm" variant="outline" disabled={searching} className="gap-1.5">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={searching}
+              className="gap-1.5"
+              onClick={handleSearch}
+            >
               {searching ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
               検索
             </Button>
-          </form>
+          </div>
 
           {results.length > 0 && (
             <ul className="max-h-40 overflow-y-auto rounded-lg border border-border/60 bg-card text-sm">
