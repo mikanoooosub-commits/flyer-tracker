@@ -15,6 +15,7 @@ export type VisitFilters = {
   schoolId?: string;
   locationId?: string;
   includeDeleted?: boolean;
+  hideZero?: boolean; // count=0 の履歴を除外（null は残す）
 };
 
 export async function getSchools(): Promise<School[]> {
@@ -47,6 +48,10 @@ export async function getVisits(filters: VisitFilters = {}): Promise<VisitWithRe
   // 小学校フィルタは埋め込みリソースのため JS 側で適用（データ量が小さい前提）
   if (filters.schoolId) {
     rows = rows.filter((v) => v.location?.school_id === filters.schoolId);
+  }
+  // 0件（count=0）を隠す。未記入(null)は残す。
+  if (filters.hideZero) {
+    rows = rows.filter((v) => v.count !== 0);
   }
   return rows;
 }

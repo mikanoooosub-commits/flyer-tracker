@@ -10,6 +10,7 @@ type SearchParams = Promise<{
   school?: string;
   location?: string;
   deleted?: string;
+  hidezero?: string;
 }>;
 
 export default async function ListPage({ searchParams }: { searchParams: SearchParams }) {
@@ -20,6 +21,7 @@ export default async function ListPage({ searchParams }: { searchParams: SearchP
     schoolId: sp.school ?? "",
     locationId: sp.location ?? "",
     includeDeleted: sp.deleted === "1",
+    hideZero: sp.hidezero === "1",
   };
 
   const [schools, visits, activeLocation] = await Promise.all([
@@ -30,6 +32,7 @@ export default async function ListPage({ searchParams }: { searchParams: SearchP
       schoolId: filters.schoolId || undefined,
       locationId: filters.locationId || undefined,
       includeDeleted: filters.includeDeleted,
+      hideZero: filters.hideZero,
     }),
     filters.locationId ? getLocationById(filters.locationId) : Promise.resolve(null),
   ]);

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Filter, X, MapPin, Pencil } from "lucide-react";
+import { Plus, Filter, X, MapPin, Pencil, Copy, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,16 +23,41 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { VisitRow } from "@/components/visits/visit-row";
+import { VisitTableRow } from "@/components/visits/visit-table-row";
 import { VisitForm } from "@/components/visits/visit-form";
 import { LocationPicker } from "@/components/map/location-picker";
 import { createVisitAction, setLocationCoordsAction } from "@/lib/data/actions";
 import type { School, VisitWithRelations } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
+import { formatDatePadded, formatTimeRange } from "@/lib/format";
+
+/** 一覧を「日時 対象 配布数 メモ」のタブ区切りテキストに整形（上司報告コピー用） */
+function buildTsv(visits: VisitWithRelations[]): string {
+  const header = ["日時", "対象", "配布数", "メモ"].join("\t");
+  const rows = visits.map((v) => {
+    const time = formatTimeRange(v.start_time, v.end_time);
+    const dt = `${formatDatePadded(v.date)}${time ? ` ${time}` : ""}`;
+    const school = v.location?.school?.name ?? "";
+    const spot = v.location?.spot?.trim() ?? "";
+    const target = spot ? `${school} ${spot}` : school;
+    const count = v.count != null ? String(v.count) : "";
+    const memo = (v.memo ?? "").replace(/[\t\r\n]+/g, " ");
+    return [dt, target, count, memo].join("\t");
+  });
+  return [header, ...rows].join("\n");
+}
 
 type Props = {
   schools: School[];
   visits: VisitWithRelations[];
-  filters: { from: string; to: string; schoolId: string; locationId: string; includeDeleted: boolean };
+  filters: {
+    from: string;
+    to: string;
+    schoolId: string;
+    locationId: string;
+    includeDeleted: boolean;
+    hideZero: boolean;
+  };
   activeLocation: LocationWithSchool | null;
 };
 
@@ -40,6 +65,17 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
   const router = useRouter();
   const searchParams = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(buildTsv(visits));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // クリップボード権限が無い環境では何もしない
+    }
+  }
 
   const totalCount = visits.reduce((sum, v) => sum + (v.count ?? 0), 0);
   const unmappedCount = visits.filter(
@@ -156,6 +192,16 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
             <input
               type="checkbox"
               className="size-4 accent-primary"
+              checked={filters.hideZero}
+              onChange={(e) => updateParam("hidezero", e.target.checked ? "1" : null)}
+            />
+            0件の履歴を非表示
+          </label>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="size-4 accent-primary"
               checked={filters.includeDeleted}
               onChange={(e) => updateParam("deleted", e.target.checked ? "1" : null)}
             />
@@ -171,6 +217,16 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
         <SummaryCell label="地図未紐付け" value={`${unmappedCount}件`} />
       </div>
 
+      {/* 履歴コピー */}
+      {visits.length > 0 && (
+        <div className="flex justify-end">
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={handleCopy}>
+            {copied ? <Check className="size-4 text-rating-good" /> : <Copy className="size-4" />}
+            {copied ? "コピーしました" : "履歴をコピー"}
+          </Button>
+        </div>
+      )}
+
       {/* 一覧 */}
       {visits.length === 0 ? (
         <Card>
@@ -181,11 +237,35 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
           </CardContent>
         </Card>
       ) : (
-        <div className="flex flex-col gap-3">
-          {visits.map((v) => (
-            <VisitRow key={v.id} visit={v} schools={schools} />
-          ))}
-        </div>
+        <>
+          {/* スマホ: カード表示 */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {visits.map((v) => (
+              <VisitRow key={v.id} visit={v} schools={schools} />
+            ))}
+          </div>
+
+          {/* PC: テーブル表示 */}
+          <div className="hidden overflow-x-auto rounded-xl border border-border/60 bg-card md:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50 text-left text-xs text-muted-foreground">
+                  <th className="px-2 py-2 font-bold">日時</th>
+                  <th className="px-2 py-2 font-bold">対象</th>
+                  <th className="px-2 py-2 text-right font-bold">配布数</th>
+                  <th className="px-2 py-2 font-bold">評価</th>
+                  <th className="px-2 py-2 font-bold">メモ</th>
+                  <th className="px-2 py-2 font-bold">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visits.map((v) => (
+                  <VisitTableRow key={v.id} visit={v} schools={schools} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

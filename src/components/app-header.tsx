@@ -14,7 +14,7 @@ type Props = {
 export function AppHeader({ title, subtitle, backHref, action }: Props) {
   return (
     <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-md items-center gap-2 px-4 py-3.5">
+      <div className="mx-auto flex max-w-md items-center gap-2 px-4 py-3.5 md:max-w-3xl">
         {backHref ? (
           <Link
             href={backHref}

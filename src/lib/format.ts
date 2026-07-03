@@ -37,6 +37,14 @@ export function formatDateTime(iso: string | null | undefined): string {
   return `${dt.getFullYear()}/${dt.getMonth() + 1}/${dt.getDate()} ${p(dt.getHours())}:${p(dt.getMinutes())}`;
 }
 
+/** "2026-03-11" → "2026/03/11"（ゼロ埋め・曜日なし。報告コピー用） */
+export function formatDatePadded(d: string | null | undefined): string {
+  if (!d) return "";
+  const [y, m, day] = d.split("-");
+  if (!y || !m || !day) return d;
+  return `${y}/${m}/${day}`;
+}
+
 /** 今日の日付を YYYY-MM-DD で返す（ローカルタイム） */
 export function todayISO(): string {
   const d = new Date();
