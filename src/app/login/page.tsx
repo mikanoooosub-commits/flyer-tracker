@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapPin, Mail, CheckCircle2 } from "lucide-react";
+import { MapPin, Mail, CheckCircle2, PlayCircle } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,10 +9,35 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "1";
+const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "";
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [demoLoading, setDemoLoading] = useState(false);
+
+  async function handleDemoLogin() {
+    setDemoLoading(true);
+    setMessage("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: DEMO_EMAIL,
+        password: DEMO_PASSWORD,
+      });
+      if (error) throw error;
+      window.location.href = "/";
+    } catch (err) {
+      setDemoLoading(false);
+      setStatus("error");
+      setMessage(
+        err instanceof Error ? err.message : "デモログインに失敗しました。時間をおいて再度お試しください。"
+      );
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -58,6 +83,21 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">ログインして記録を始めましょう</p>
         </div>
       </div>
+
+      {DEMO_MODE && (
+        <Card className="mb-4 w-full border-primary/40 bg-primary/5">
+          <CardContent className="flex flex-col gap-2 py-4">
+            <p className="text-sm font-bold">これはデモ環境です</p>
+            <p className="text-xs text-muted-foreground">
+              下のボタンで、ダミーデータの入ったデモにそのままログインできます。
+            </p>
+            <Button size="lg" className="gap-2" onClick={handleDemoLogin} disabled={demoLoading}>
+              <PlayCircle className="size-5" />
+              {demoLoading ? "ログイン中…" : "デモとしてログイン"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="w-full">
         <CardHeader>
