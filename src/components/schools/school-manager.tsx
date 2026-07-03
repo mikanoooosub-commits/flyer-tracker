@@ -31,6 +31,7 @@ export function SchoolManager({ schools }: { schools: School[] }) {
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const [coordsTarget, setCoordsTarget] = useState<School | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<School | null>(null);
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -53,8 +54,13 @@ export function SchoolManager({ schools }: { schools: School[] }) {
     setError("");
     startTransition(async () => {
       const result = await deleteSchoolAction(id);
-      if (result.ok) router.refresh();
-      else setError(result.error);
+      if (result.ok) {
+        setDeleteTarget(null);
+        router.refresh();
+      } else {
+        setDeleteTarget(null);
+        setError(result.error);
+      }
     });
   }
 
@@ -143,7 +149,7 @@ export function SchoolManager({ schools }: { schools: School[] }) {
                   size="sm"
                   className="gap-1.5 text-destructive"
                   disabled={pending}
-                  onClick={() => handleDelete(s.id)}
+                  onClick={() => setDeleteTarget(s)}
                 >
                   <Trash2 className="size-4" />
                   削除
@@ -168,6 +174,35 @@ export function SchoolManager({ schools }: { schools: School[] }) {
           router.refresh();
         }}
       />
+
+      <Dialog open={deleteTarget !== null} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>小学校を削除しますか？</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm">
+            「<span className="font-bold">{deleteTarget?.name}</span>」を削除します。この操作は取り消せません。
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setDeleteTarget(null)}
+              disabled={pending}
+            >
+              キャンセル
+            </Button>
+            <Button
+              variant="destructive"
+              className="flex-1"
+              onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
+              disabled={pending}
+            >
+              {pending ? "削除中…" : "削除する"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

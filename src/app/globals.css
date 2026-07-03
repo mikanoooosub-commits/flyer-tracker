@@ -162,6 +162,10 @@
   min-width: 180px;
   font-size: 12px;
   color: #111;
+  cursor: pointer;
+}
+.flyer-history:hover .flyer-history-hint {
+  text-decoration: underline;
 }
 .flyer-history-title {
   font-weight: 700;
