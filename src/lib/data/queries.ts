@@ -5,6 +5,7 @@ import type {
   VisitLog,
   LocationPinStatus,
   Location,
+  MapNote,
 } from "@/lib/types";
 
 // サーバーコンポーネントから呼ぶ読み取り関数群（"use server" は付けない）
@@ -105,4 +106,14 @@ export async function getPinStatuses(): Promise<LocationPinStatus[]> {
   const { data, error } = await supabase.from("location_pin_status").select("*");
   if (error) throw error;
   return (data ?? []) as LocationPinStatus[];
+}
+
+export async function getMapNotes(): Promise<MapNote[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("map_notes")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as MapNote[];
 }

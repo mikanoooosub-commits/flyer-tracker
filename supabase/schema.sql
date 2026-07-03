@@ -21,6 +21,23 @@ alter table public.schools add column if not exists lat double precision;
 alter table public.schools add column if not exists lng double precision;
 
 -- ────────────────────────────────────────────────────────────────────────────
+-- map_notes（マップメモ）
+-- 配布実績とは別に、地図上へ色付きの目印＋メモを置く機能。
+-- 例: 交通誘導員がいる場所（黄）、次に配りたい候補地（紫）など。
+-- ────────────────────────────────────────────────────────────────────────────
+create table if not exists public.map_notes (
+  id         uuid primary key default gen_random_uuid(),
+  lat        double precision not null,
+  lng        double precision not null,
+  color      text not null default 'yellow',  -- 色トークン（アプリ側で色に対応付け）
+  label      text,                             -- 見出し（例: 交通誘導員）
+  memo       text,                             -- 詳細メモ
+  user_id    uuid references auth.users(id) default auth.uid(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- ────────────────────────────────────────────────────────────────────────────
 -- 4-1. locations（配布場所マスタ）
 -- 同一地点（学校＋立ち位置）への複数回の配布履歴をまとめる単位
 -- ────────────────────────────────────────────────────────────────────────────
@@ -127,6 +144,11 @@ create trigger trg_visits_updated_at
   before update on public.visits
   for each row execute function public.set_updated_at();
 
+drop trigger if exists trg_map_notes_updated_at on public.map_notes;
+create trigger trg_map_notes_updated_at
+  before update on public.map_notes
+  for each row execute function public.set_updated_at();
+
 -- ────────────────────────────────────────────────────────────────────────────
 -- トリガー: visits の変更を visit_logs に自動記録
 --   INSERT                        -> action 'create'（before=null）
@@ -197,6 +219,7 @@ grant select, insert, update, delete on public.locations  to authenticated;
 grant select, insert, update          on public.visits     to authenticated; -- DELETE は付与しない
 grant select                          on public.visit_logs to authenticated; -- 書き込みはトリガー経由のみ
 grant select, update                  on public.profiles   to authenticated;
+grant select, insert, update, delete  on public.map_notes  to authenticated;
 grant select                          on public.location_pin_status to authenticated;
 
 -- ============================================================================
@@ -211,6 +234,17 @@ alter table public.locations  enable row level security;
 alter table public.visits     enable row level security;
 alter table public.visit_logs enable row level security;
 alter table public.profiles   enable row level security;
+alter table public.map_notes  enable row level security;
+
+-- map_notes: 認証済みは全操作可（チームで共有・相互編集）
+drop policy if exists map_notes_select on public.map_notes;
+drop policy if exists map_notes_insert on public.map_notes;
+drop policy if exists map_notes_update on public.map_notes;
+drop policy if exists map_notes_delete on public.map_notes;
+create policy map_notes_select on public.map_notes for select to authenticated using (true);
+create policy map_notes_insert on public.map_notes for insert to authenticated with check (true);
+create policy map_notes_update on public.map_notes for update to authenticated using (true) with check (true);
+create policy map_notes_delete on public.map_notes for delete to authenticated using (true);
 
 -- profiles: 認証済みは全員参照可。自分の表示名のみ更新可。
 drop policy if exists profiles_select on public.profiles;

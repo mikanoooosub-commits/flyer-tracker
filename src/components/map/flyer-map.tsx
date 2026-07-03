@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, Popup, useMapEvents } from "r
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import { RATING_META, type Rating } from "@/lib/types";
+import { RATING_META, noteColor, type Rating, type MapNote } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
 import { formatDate } from "@/lib/format";
 
@@ -32,6 +32,16 @@ function makePinIcon(rating: Rating | null) {
     className: "flyer-pin",
     iconSize: [50, 52],
     iconAnchor: [25, 52],
+  });
+}
+
+function makeNoteIcon(color: string) {
+  const html = `<div style="width:24px;height:24px;border-radius:9999px;background:${color};border:3px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.45);"></div>`;
+  return L.divIcon({
+    html,
+    className: "flyer-note",
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
   });
 }
 
@@ -141,18 +151,22 @@ type Props = {
   placedLocations: LocationWithSchool[];
   ratings: Record<string, Rating | null>;
   history: Record<string, PinHistoryItem[]>;
+  notes: MapNote[];
   center: [number, number];
   onMapClick: (lat: number, lng: number) => void;
   onPinClick: (locationId: string) => void;
+  onNoteClick: (noteId: string) => void;
 };
 
 export default function FlyerMap({
   placedLocations,
   ratings,
   history,
+  notes,
   center,
   onMapClick,
   onPinClick,
+  onNoteClick,
 }: Props) {
   return (
     <MapContainer center={center} zoom={14} className="h-full w-full" scrollWheelZoom>
@@ -169,6 +183,22 @@ export default function FlyerMap({
           items={history[loc.id] ?? []}
           onPinClick={onPinClick}
         />
+      ))}
+      {notes.map((n) => (
+        <Marker
+          key={n.id}
+          position={[n.lat, n.lng]}
+          icon={makeNoteIcon(noteColor(n.color))}
+          eventHandlers={{ click: () => onNoteClick(n.id) }}
+        >
+          <Tooltip direction="top" offset={[0, -8]} className="flyer-note-tip">
+            <div>
+              {n.label && <p className="font-bold">{n.label}</p>}
+              {n.memo && <p className="whitespace-pre-wrap">{n.memo}</p>}
+              {!n.label && !n.memo && <p>メモ</p>}
+            </div>
+          </Tooltip>
+        </Marker>
       ))}
     </MapContainer>
   );

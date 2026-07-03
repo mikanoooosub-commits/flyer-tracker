@@ -201,6 +201,67 @@ export async function createLocationAtAction(
   }
 }
 
+// ── マップメモ ───────────────────────────────────────────────────────────────
+
+export async function createMapNoteAction(
+  lat: number,
+  lng: number,
+  color: string,
+  label: string,
+  memo: string
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.from("map_notes").insert({
+      lat,
+      lng,
+      color,
+      label: label.trim() || null,
+      memo: memo.trim() || null,
+    });
+    if (error) throw error;
+
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "メモの登録に失敗しました" };
+  }
+}
+
+export async function updateMapNoteAction(
+  id: string,
+  color: string,
+  label: string,
+  memo: string
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("map_notes")
+      .update({ color, label: label.trim() || null, memo: memo.trim() || null })
+      .eq("id", id);
+    if (error) throw error;
+
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "メモの更新に失敗しました" };
+  }
+}
+
+export async function deleteMapNoteAction(id: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.from("map_notes").delete().eq("id", id);
+    if (error) throw error;
+
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "メモの削除に失敗しました" };
+  }
+}
+
 // ── 小学校マスタ（Phase 5 で利用） ──────────────────────────────────────────
 
 export async function addSchoolAction(

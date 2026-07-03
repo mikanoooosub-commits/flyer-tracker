@@ -5,17 +5,19 @@ import {
   getLocationsWithSchool,
   getPinStatuses,
   getVisits,
+  getMapNotes,
 } from "@/lib/data/queries";
 import type { Rating } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function MapPage() {
-  const [schools, locations, pinStatuses, visits] = await Promise.all([
+  const [schools, locations, pinStatuses, visits, notes] = await Promise.all([
     getSchools(),
     getLocationsWithSchool(),
     getPinStatuses(),
     getVisits({}),
+    getMapNotes(),
   ]);
 
   const ratings: Record<string, Rating | null> = {};
@@ -25,8 +27,14 @@ export default async function MapPage() {
 
   return (
     <>
-      <AppHeader title="地図" subtitle="配布場所のピン" />
-      <MapView schools={schools} locations={locations} ratings={ratings} visits={visits} />
+      <AppHeader title="地図" subtitle="配布場所のピン・メモ" />
+      <MapView
+        schools={schools}
+        locations={locations}
+        ratings={ratings}
+        visits={visits}
+        notes={notes}
+      />
     </>
   );
 }

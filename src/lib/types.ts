@@ -73,6 +73,36 @@ export type VisitWithRelations = Visit & {
   location: (Location & { school: School | null }) | null;
 };
 
+// ── マップメモ ───────────────────────────────────────────────────────────────
+export type MapNote = {
+  id: string;
+  lat: number;
+  lng: number;
+  color: string;
+  label: string | null;
+  memo: string | null;
+  user_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** メモの色プリセット（value=保存する色トークン、color=表示色） */
+export const NOTE_PRESETS: { value: string; label: string; color: string }[] = [
+  { value: "yellow", label: "交通誘導員", color: "#eab308" },
+  { value: "purple", label: "配布地候補", color: "#8b5cf6" },
+  { value: "red", label: "注意", color: "#ef4444" },
+  { value: "blue", label: "メモ(青)", color: "#3b82f6" },
+  { value: "green", label: "メモ(緑)", color: "#22c55e" },
+];
+
+export const NOTE_COLOR_MAP: Record<string, string> = Object.fromEntries(
+  NOTE_PRESETS.map((p) => [p.value, p.color])
+);
+
+export function noteColor(token: string): string {
+  return NOTE_COLOR_MAP[token] ?? "#eab308";
+}
+
 // ── フォーム入力・アクション結果 ─────────────────────────────────────────────
 export type VisitInput = {
   schoolId: string;

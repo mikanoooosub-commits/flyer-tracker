@@ -208,3 +208,15 @@
   color: var(--primary);
   font-weight: 700;
 }
+
+/* マップメモのホバー吹き出し */
+.flyer-note {
+  background: transparent;
+  border: none;
+}
+.leaflet-tooltip.flyer-note-tip {
+  max-width: 220px;
+  font-size: 12px;
+  color: #111;
+  white-space: normal;
+}
