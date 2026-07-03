@@ -56,6 +56,8 @@ export type VisitLog = {
   created_at: string;
 };
 
+export type VisitLogWithUser = VisitLog & { userName: string | null };
+
 export type LocationPinStatus = {
   location_id: string;
   latest_visit_id: string | null;
@@ -68,3 +70,17 @@ export type LocationPinStatus = {
 export type VisitWithRelations = Visit & {
   location: (Location & { school: School | null }) | null;
 };
+
+// ── フォーム入力・アクション結果 ─────────────────────────────────────────────
+export type VisitInput = {
+  schoolId: string;
+  spot: string;
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  count: number | null;
+  rating: Rating;
+  memo: string | null;
+};
+
+export type ActionResult = { ok: true } | { ok: false; error: string };

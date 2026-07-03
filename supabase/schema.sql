@@ -67,6 +67,43 @@ create table if not exists public.visit_logs (
 create index if not exists idx_visit_logs_visit on public.visit_logs(visit_id, created_at desc);
 
 -- ────────────────────────────────────────────────────────────────────────────
+-- profiles（メンバー情報）
+-- auth.users は直接参照できないため、表示名・メールを保持する公開プロフィール。
+-- 「誰が配布したか」「誰が変更したか」の表示に使う。
+-- ────────────────────────────────────────────────────────────────────────────
+create table if not exists public.profiles (
+  id           uuid primary key references auth.users(id) on delete cascade,
+  email        text,
+  display_name text,
+  created_at   timestamptz not null default now()
+);
+
+-- 新規サインアップ時に profiles を自動作成
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.profiles(id, email)
+    values (new.id, new.email)
+    on conflict (id) do update set email = excluded.email;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- 既存ユーザー分を補完（何度実行してもよい）
+insert into public.profiles(id, email)
+  select id, email from auth.users
+  on conflict (id) do nothing;
+
+-- ────────────────────────────────────────────────────────────────────────────
 -- トリガー: updated_at の自動更新
 -- ────────────────────────────────────────────────────────────────────────────
 create or replace function public.set_updated_at()
@@ -152,6 +189,14 @@ alter table public.schools    enable row level security;
 alter table public.locations  enable row level security;
 alter table public.visits     enable row level security;
 alter table public.visit_logs enable row level security;
+alter table public.profiles   enable row level security;
+
+-- profiles: 認証済みは全員参照可。自分の表示名のみ更新可。
+drop policy if exists profiles_select on public.profiles;
+drop policy if exists profiles_update on public.profiles;
+create policy profiles_select on public.profiles for select to authenticated using (true);
+create policy profiles_update on public.profiles for update to authenticated
+  using (auth.uid() = id) with check (auth.uid() = id);
 
 -- schools: 認証済みは全操作可（追加・削除あり）
 drop policy if exists schools_select on public.schools;

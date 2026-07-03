@@ -1,0 +1,206 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+
+import { createClient } from "@/lib/supabase/server";
+import type { VisitInput, ActionResult, VisitLog, VisitLogWithUser } from "@/lib/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+/** 学校＋立ち位置に一致する location を探し、無ければ作成して id を返す */
+async function resolveLocationId(
+  supabase: SupabaseClient,
+  schoolId: string,
+  spot: string
+): Promise<string> {
+  const trimmedSpot = spot.trim();
+
+  const { data: existing } = await supabase
+    .from("locations")
+    .select("id")
+    .eq("school_id", schoolId)
+    .eq("spot", trimmedSpot)
+    .limit(1)
+    .maybeSingle();
+
+  if (existing?.id) return existing.id as string;
+
+  const { data: created, error } = await supabase
+    .from("locations")
+    .insert({ school_id: schoolId, spot: trimmedSpot })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return created.id as string;
+}
+
+// ── 配布履歴 ────────────────────────────────────────────────────────────────
+
+export async function createVisitAction(input: VisitInput): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
+
+    const { error } = await supabase.from("visits").insert({
+      location_id: locationId,
+      date: input.date,
+      start_time: input.startTime,
+      end_time: input.endTime,
+      count: input.count,
+      rating: input.rating,
+      memo: input.memo,
+    });
+    if (error) throw error;
+
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "登録に失敗しました" };
+  }
+}
+
+export async function updateVisitAction(
+  visitId: string,
+  input: VisitInput
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
+
+    const { error } = await supabase
+      .from("visits")
+      .update({
+        location_id: locationId,
+        date: input.date,
+        start_time: input.startTime,
+        end_time: input.endTime,
+        count: input.count,
+        rating: input.rating,
+        memo: input.memo,
+      })
+      .eq("id", visitId);
+    if (error) throw error;
+
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "更新に失敗しました" };
+  }
+}
+
+/** 論理削除／復元（トリガーが visit_logs に自動記録する） */
+export async function setVisitDeletedAction(
+  visitId: string,
+  isDeleted: boolean
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("visits")
+      .update({ is_deleted: isDeleted })
+      .eq("id", visitId);
+    if (error) throw error;
+
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "操作に失敗しました" };
+  }
+}
+
+export async function getVisitLogsAction(visitId: string): Promise<VisitLogWithUser[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("visit_logs")
+    .select("*")
+    .eq("visit_id", visitId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  const logs = (data ?? []) as VisitLog[];
+  const ids = [...new Set(logs.map((l) => l.user_id).filter(Boolean))] as string[];
+
+  const names: Record<string, string> = {};
+  if (ids.length > 0) {
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, email, display_name")
+      .in("id", ids);
+    for (const p of profs ?? []) {
+      names[p.id as string] = (p.display_name as string) || (p.email as string) || "";
+    }
+  }
+
+  return logs.map((l) => ({
+    ...l,
+    userName: l.user_id ? names[l.user_id] ?? null : null,
+  }));
+}
+
+// ── 座標の紐付け（地図タブから利用） ────────────────────────────────────────
+
+export async function setLocationCoordsAction(
+  locationId: string,
+  lat: number,
+  lng: number
+): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase
+      .from("locations")
+      .update({ lat, lng })
+      .eq("id", locationId);
+    if (error) throw error;
+
+    revalidatePath("/");
+    revalidatePath("/map");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "紐付けに失敗しました" };
+  }
+}
+
+// ── 小学校マスタ（Phase 5 で利用） ──────────────────────────────────────────
+
+export async function addSchoolAction(name: string): Promise<ActionResult> {
+  try {
+    const trimmed = name.trim();
+    if (!trimmed) return { ok: false, error: "小学校名を入力してください" };
+    const supabase = await createClient();
+    const { error } = await supabase.from("schools").insert({ name: trimmed });
+    if (error) throw error;
+
+    revalidatePath("/schools");
+    revalidatePath("/");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "追加に失敗しました" };
+  }
+}
+
+export async function deleteSchoolAction(schoolId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+
+    // 紐づく location があるか確認（あれば削除を拒否）
+    const { count, error: countError } = await supabase
+      .from("locations")
+      .select("id", { count: "exact", head: true })
+      .eq("school_id", schoolId);
+    if (countError) throw countError;
+    if ((count ?? 0) > 0) {
+      return { ok: false, error: "この小学校に紐づく配布場所があるため削除できません" };
+    }
+
+    const { error } = await supabase.from("schools").delete().eq("id", schoolId);
+    if (error) throw error;
+
+    revalidatePath("/schools");
+    revalidatePath("/");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "削除に失敗しました" };
+  }
+}
