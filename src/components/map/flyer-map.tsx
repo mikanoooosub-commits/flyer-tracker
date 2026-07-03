@@ -1,11 +1,14 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Tooltip, Popup, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-import type { Rating } from "@/lib/types";
+import { RATING_META, type Rating } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
+import { formatDate } from "@/lib/format";
+
+export type PinHistoryItem = { date: string; count: number | null; rating: Rating };
 
 const RATING_COLOR: Record<Rating | "none", string> = {
   good: "var(--rating-good)",
@@ -40,6 +43,7 @@ function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) =
 type Props = {
   placedLocations: LocationWithSchool[];
   ratings: Record<string, Rating | null>;
+  history: Record<string, PinHistoryItem[]>;
   center: [number, number];
   onMapClick: (lat: number, lng: number) => void;
   onPinClick: (locationId: string) => void;
@@ -48,6 +52,7 @@ type Props = {
 export default function FlyerMap({
   placedLocations,
   ratings,
+  history,
   center,
   onMapClick,
   onPinClick,
@@ -59,18 +64,58 @@ export default function FlyerMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ClickHandler onMapClick={onMapClick} />
-      {placedLocations.map((loc) => (
-        <Marker
-          key={loc.id}
-          position={[loc.lat as number, loc.lng as number]}
-          icon={makePinIcon(ratings[loc.id] ?? null)}
-          eventHandlers={{ click: () => onPinClick(loc.id) }}
-        >
-          <Tooltip permanent direction="top" offset={[0, -38]} className="flyer-label">
-            {loc.school?.name ?? "小学校未設定"}
-          </Tooltip>
-        </Marker>
-      ))}
+      {placedLocations.map((loc) => {
+        const items = history[loc.id] ?? [];
+        const schoolName = loc.school?.name ?? "小学校未設定";
+        const spot = loc.spot?.trim();
+        return (
+          <Marker
+            key={loc.id}
+            position={[loc.lat as number, loc.lng as number]}
+            icon={makePinIcon(ratings[loc.id] ?? null)}
+            eventHandlers={{
+              mouseover: (e) => e.target.openPopup(),
+              mouseout: (e) => e.target.closePopup(),
+              click: () => onPinClick(loc.id),
+            }}
+          >
+            <Tooltip permanent direction="top" offset={[0, -38]} className="flyer-label">
+              {schoolName}
+            </Tooltip>
+            <Popup autoPan={false} closeButton={false} className="flyer-history-popup">
+              <div className="flyer-history">
+                <p className="flyer-history-title">
+                  {schoolName}
+                  {spot ? `／${spot}` : ""}
+                </p>
+                {items.length === 0 ? (
+                  <p className="flyer-history-empty">配布履歴なし</p>
+                ) : (
+                  <ul className="flyer-history-list">
+                    {items.slice(0, 6).map((h, i) => (
+                      <li key={i}>
+                        <span>{formatDate(h.date)}</span>
+                        <span className="flyer-history-count">
+                          {h.count != null ? `${h.count}枚` : "—"}
+                        </span>
+                        <span
+                          className="flyer-history-dot"
+                          style={{ background: RATING_META[h.rating].colorVar }}
+                          title={RATING_META[h.rating].label}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {items.length > 6 && (
+                  <p className="flyer-history-more">ほか {items.length - 6} 件</p>
+                )}
+                <p className="flyer-history-hint">クリックで一覧を表示</p>
+              </div>
+            </Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 }

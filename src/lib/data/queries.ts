@@ -13,6 +13,7 @@ export type VisitFilters = {
   from?: string; // YYYY-MM-DD
   to?: string; // YYYY-MM-DD
   schoolId?: string;
+  locationId?: string;
   includeDeleted?: boolean;
 };
 
@@ -36,6 +37,7 @@ export async function getVisits(filters: VisitFilters = {}): Promise<VisitWithRe
   if (!filters.includeDeleted) query = query.eq("is_deleted", false);
   if (filters.from) query = query.gte("date", filters.from);
   if (filters.to) query = query.lte("date", filters.to);
+  if (filters.locationId) query = query.eq("location_id", filters.locationId);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -71,6 +73,17 @@ export async function getLocations(): Promise<Location[]> {
 }
 
 export type LocationWithSchool = Location & { school: School | null };
+
+export async function getLocationById(id: string): Promise<LocationWithSchool | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("locations")
+    .select("*, school:schools(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as unknown as LocationWithSchool) ?? null;
+}
 
 export async function getLocationsWithSchool(): Promise<LocationWithSchool[]> {
   const supabase = await createClient();

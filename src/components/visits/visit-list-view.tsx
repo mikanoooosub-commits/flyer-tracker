@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus, Filter, X } from "lucide-react";
+import { Plus, Filter, X, MapPin, Pencil } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,16 +24,19 @@ import {
 } from "@/components/ui/dialog";
 import { VisitRow } from "@/components/visits/visit-row";
 import { VisitForm } from "@/components/visits/visit-form";
-import { createVisitAction } from "@/lib/data/actions";
+import { LocationPicker } from "@/components/map/location-picker";
+import { createVisitAction, setLocationCoordsAction } from "@/lib/data/actions";
 import type { School, VisitWithRelations } from "@/lib/types";
+import type { LocationWithSchool } from "@/lib/data/queries";
 
 type Props = {
   schools: School[];
   visits: VisitWithRelations[];
-  filters: { from: string; to: string; schoolId: string; includeDeleted: boolean };
+  filters: { from: string; to: string; schoolId: string; locationId: string; includeDeleted: boolean };
+  activeLocation: LocationWithSchool | null;
 };
 
-export function VisitListView({ schools, visits, filters }: Props) {
+export function VisitListView({ schools, visits, filters, activeLocation }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
@@ -59,6 +62,15 @@ export function VisitListView({ schools, visits, filters }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* 地図から来た場合の、その場所のコンテキストバナー */}
+      {activeLocation && (
+        <LocationBanner
+          location={activeLocation}
+          schools={schools}
+          onClear={() => router.push("/")}
+        />
+      )}
+
       {/* 新規登録 */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogTrigger asChild>
@@ -185,5 +197,136 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="text-sm font-bold">{value}</p>
     </div>
+  );
+}
+
+function LocationBanner({
+  location,
+  schools,
+  onClear,
+}: {
+  location: LocationWithSchool;
+  schools: School[];
+  onClear: () => void;
+}) {
+  const router = useRouter();
+  const [addOpen, setAddOpen] = useState(false);
+  const [editPosOpen, setEditPosOpen] = useState(false);
+  const hasCoords = location.lat != null && location.lng != null;
+
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="flex items-center gap-1.5 text-sm font-bold">
+            <MapPin className="size-4 shrink-0 text-primary" />
+            {location.school?.name ?? "小学校未設定"}
+          </p>
+          {location.spot?.trim() && (
+            <p className="pl-5.5 text-xs text-muted-foreground">{location.spot}</p>
+          )}
+          <p className="pl-5.5 text-xs text-muted-foreground">この場所の配布履歴を表示中</p>
+        </div>
+        <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onClear}>
+          <X className="size-3.5" />
+          解除
+        </Button>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        <Dialog open={addOpen} onOpenChange={setAddOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-1.5">
+              <Plus className="size-4" />
+              この場所に追加
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[85dvh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>この場所に配布実績を追加</DialogTitle>
+            </DialogHeader>
+            <VisitForm
+              schools={schools}
+              initial={{
+                schoolId: location.school_id ?? "",
+                spot: location.spot ?? "",
+                lat: location.lat,
+                lng: location.lng,
+              }}
+              submitLabel="追加する"
+              onSubmit={createVisitAction}
+              onSuccess={() => {
+                setAddOpen(false);
+                router.refresh();
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={editPosOpen} onOpenChange={setEditPosOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="outline" className="gap-1.5">
+              <Pencil className="size-4" />
+              {hasCoords ? "位置を修正" : "位置を設定"}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-h-[85dvh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>配布場所の位置を修正</DialogTitle>
+            </DialogHeader>
+            <EditPositionBody
+              location={location}
+              onSaved={() => {
+                setEditPosOpen(false);
+                router.refresh();
+              }}
+              onCancel={() => setEditPosOpen(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
+
+function EditPositionBody({
+  location,
+  onSaved,
+  onCancel,
+}: {
+  location: LocationWithSchool;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
+  const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 };
+  const initial =
+    location.lat != null && location.lng != null
+      ? { lat: location.lat, lng: location.lng }
+      : DEFAULT_CENTER;
+  const [pos, setPos] = useState(initial);
+  const [pending, startTransition] = useTransition();
+
+  function handleSave() {
+    startTransition(async () => {
+      await setLocationCoordsAction(location.id, pos.lat, pos.lng);
+      onSaved();
+    });
+  }
+
+  return (
+    <>
+      <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
+      <p className="text-xs text-muted-foreground">
+        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（検索・タップ・ドラッグで調整）
+      </p>
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onCancel} disabled={pending}>
+          キャンセル
+        </Button>
+        <Button className="flex-1" onClick={handleSave} disabled={pending}>
+          {pending ? "保存中…" : "この位置で保存"}
+        </Button>
+      </div>
+    </>
   );
 }
