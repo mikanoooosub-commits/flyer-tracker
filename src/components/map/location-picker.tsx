@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, LocateFixed } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
@@ -55,6 +55,40 @@ export function LocationPicker({
   const [results, setResults] = useState<NominatimResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
+
+  const [locating, setLocating] = useState(false);
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [geoError, setGeoError] = useState("");
+
+  function handleUseCurrentLocation() {
+    setGeoError("");
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoError("この端末・ブラウザでは現在地を取得できません");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setAccuracy(pos.coords.accuracy ?? null);
+        setMapCenter({ lat, lng });
+        onChange(lat, lng);
+        setLocating(false);
+      },
+      (err) => {
+        setLocating(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setGeoError("位置情報が許可されていません。ブラウザ／端末の設定をご確認ください。");
+        } else if (err.code === err.TIMEOUT) {
+          setGeoError("現在地の取得がタイムアウトしました。もう一度お試しください。");
+        } else {
+          setGeoError("現在地を取得できませんでした。");
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
 
   async function handleSearch() {
     const q = query.trim();
@@ -137,6 +171,36 @@ export function LocationPicker({
           )}
         </div>
       )}
+
+      {/* 現在地（GPS）。取得後は地図で微調整できる */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={locating}
+          className="gap-1.5"
+          onClick={handleUseCurrentLocation}
+        >
+          {locating ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <LocateFixed className="size-4" />
+          )}
+          {locating ? "取得中…" : "現在地"}
+        </Button>
+        {geoError ? (
+          <span className="text-xs text-destructive">{geoError}</span>
+        ) : accuracy != null ? (
+          <span className="text-xs text-muted-foreground">
+            精度 ±{Math.round(accuracy)}m・地図で微調整できます
+          </span>
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            現在地を取得してから位置を微調整できます
+          </span>
+        )}
+      </div>
 
       <div className={cn("h-56 w-full overflow-hidden rounded-xl border-2 border-input", className)}>
         <LocationPickerMap
