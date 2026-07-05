@@ -129,7 +129,7 @@ export function VisitRow({
               </Button>
               {!hasCoords && (
                 <Button variant="ghost" size="sm" className="gap-1.5 text-primary" asChild>
-                  <Link href={`/map?place=${visit.location_id}`}>
+                  <Link href={`/?place=${visit.location_id}`}>
                     <MapPin className="size-4" />
                     地図に配置
                   </Link>

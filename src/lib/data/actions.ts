@@ -65,7 +65,7 @@ export async function createVisitAction(input: VisitInput): Promise<ActionResult
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "登録に失敗しました" };
@@ -96,7 +96,7 @@ export async function updateVisitAction(
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "更新に失敗しました" };
@@ -117,7 +117,7 @@ export async function setVisitDeletedAction(
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "操作に失敗しました" };
@@ -169,7 +169,7 @@ export async function setLocationCoordsAction(
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "紐付けに失敗しました" };
@@ -194,7 +194,7 @@ export async function createLocationAtAction(
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true, locationId: data.id as string };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "作成に失敗しました" };
@@ -221,7 +221,7 @@ export async function createMapNoteAction(
     });
     if (error) throw error;
 
-    revalidatePath("/map");
+    revalidatePath("/");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "メモの登録に失敗しました" };
@@ -250,7 +250,7 @@ export async function updateMapNoteAction(
     const { error } = await supabase.from("map_notes").update(patch).eq("id", id);
     if (error) throw error;
 
-    revalidatePath("/map");
+    revalidatePath("/");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "メモの更新に失敗しました" };
@@ -263,7 +263,7 @@ export async function deleteMapNoteAction(id: string): Promise<ActionResult> {
     const { error } = await supabase.from("map_notes").delete().eq("id", id);
     if (error) throw error;
 
-    revalidatePath("/map");
+    revalidatePath("/");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "メモの削除に失敗しました" };
@@ -286,7 +286,7 @@ export async function addSchoolAction(
 
     revalidatePath("/schools");
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "追加に失敗しました" };
@@ -308,7 +308,7 @@ export async function updateSchoolCoordsAction(
 
     revalidatePath("/schools");
     revalidatePath("/");
-    revalidatePath("/map");
+    revalidatePath("/list");
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "座標の更新に失敗しました" };

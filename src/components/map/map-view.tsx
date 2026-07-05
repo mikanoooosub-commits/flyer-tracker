@@ -107,14 +107,14 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         <div className="mx-4 mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
           <Crosshair className="size-4 shrink-0 text-primary" />
           <span className="flex-1">地図をタップして、この配布場所の位置を指定してください</span>
-          <Button variant="ghost" size="sm" onClick={() => router.replace("/map")}>
+          <Button variant="ghost" size="sm" onClick={() => router.replace("/")}>
             <X className="size-4" />
           </Button>
         </div>
       )}
 
       {/* 地図本体（isolate で Leaflet の高い z-index を閉じ込め、ダイアログを前面に保つ） */}
-      <div className="relative z-0 h-[calc(100dvh-11rem)] w-full overflow-hidden [isolation:isolate]">
+      <div className="relative z-0 h-[calc(100dvh-15.5rem)] w-full overflow-hidden [isolation:isolate]">
         <FlyerMap
           placedLocations={placedLocations}
           ratings={ratings}
@@ -122,7 +122,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
           notes={notes}
           center={center}
           onMapClick={handleMapClick}
-          onPinClick={(id) => router.push(`/?location=${id}`)}
+          onPinClick={(id) => router.push(`/list?location=${id}`)}
           onNoteClick={(id) => {
             const n = notes.find((x) => x.id === id);
             if (n) setEditingNote(n);
@@ -155,7 +155,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
           if (!placeId) return;
           setPlaceDraft(null);
           setLocationCoordsAction(placeId, lat, lng).then(() => {
-            router.replace("/map");
+            router.replace("/");
             router.refresh();
           });
         }}

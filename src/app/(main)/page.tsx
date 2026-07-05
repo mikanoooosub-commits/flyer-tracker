@@ -1,53 +1,44 @@
 import { AppHeader } from "@/components/app-header";
-import { VisitListView } from "@/components/visits/visit-list-view";
-import { getSchools, getVisits, getLocationById } from "@/lib/data/queries";
+import { MapView } from "@/components/map/map-view";
+import { RegisterDialog } from "@/components/register-dialog";
+import {
+  getSchools,
+  getLocationsWithSchool,
+  getPinStatuses,
+  getVisits,
+  getMapNotes,
+} from "@/lib/data/queries";
+import type { Rating } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-type SearchParams = Promise<{
-  from?: string;
-  to?: string;
-  school?: string;
-  location?: string;
-  deleted?: string;
-  hidezero?: string;
-}>;
-
-export default async function ListPage({ searchParams }: { searchParams: SearchParams }) {
-  const sp = await searchParams;
-  const filters = {
-    from: sp.from ?? "",
-    to: sp.to ?? "",
-    schoolId: sp.school ?? "",
-    locationId: sp.location ?? "",
-    includeDeleted: sp.deleted === "1",
-    hideZero: sp.hidezero === "1",
-  };
-
-  const [schools, visits, activeLocation] = await Promise.all([
+export default async function MapHomePage() {
+  const [schools, locations, pinStatuses, visits, notes] = await Promise.all([
     getSchools(),
-    getVisits({
-      from: filters.from || undefined,
-      to: filters.to || undefined,
-      schoolId: filters.schoolId || undefined,
-      locationId: filters.locationId || undefined,
-      includeDeleted: filters.includeDeleted,
-      hideZero: filters.hideZero,
-    }),
-    filters.locationId ? getLocationById(filters.locationId) : Promise.resolve(null),
+    getLocationsWithSchool(),
+    getPinStatuses(),
+    getVisits({}),
+    getMapNotes(),
   ]);
+
+  const ratings: Record<string, Rating | null> = {};
+  for (const p of pinStatuses) {
+    ratings[p.location_id] = p.latest_rating;
+  }
 
   return (
     <>
-      <AppHeader title="配布実績一覧" subtitle="チラシ配布の履歴" />
-      <main className="px-4 py-4">
-        <VisitListView
-          schools={schools}
-          visits={visits}
-          filters={filters}
-          activeLocation={activeLocation}
-        />
-      </main>
+      <AppHeader title="地図" subtitle="配布場所のピン・メモ" />
+      <div className="px-4 pt-3 pb-2">
+        <RegisterDialog schools={schools} />
+      </div>
+      <MapView
+        schools={schools}
+        locations={locations}
+        ratings={ratings}
+        visits={visits}
+        notes={notes}
+      />
     </>
   );
 }

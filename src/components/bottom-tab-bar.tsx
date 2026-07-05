@@ -7,8 +7,8 @@ import { List, Map, School } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { href: "/", label: "一覧", icon: List, match: (p: string) => p === "/" },
-  { href: "/map", label: "地図", icon: Map, match: (p: string) => p.startsWith("/map") },
+  { href: "/", label: "地図", icon: Map, match: (p: string) => p === "/" },
+  { href: "/list", label: "一覧", icon: List, match: (p: string) => p.startsWith("/list") },
   { href: "/schools", label: "小学校", icon: School, match: (p: string) => p.startsWith("/schools") },
 ] as const;
 
