@@ -40,5 +40,5 @@ select id, d, st, et, c, r, nullif(m, '') from (
 ) y;
 
 insert into public.map_notes (lat, lng, color, label, memo) values
-  (35.7509, 139.7101, 'yellow', '交通誘導員', '朝の時間帯は誘導員が立っている'),
-  (35.7475, 139.7148, 'purple', '配布地候補', '人通りが多い。次回ここで配りたい');
+  (35.7509, 139.7101, 'yellow', '掲示板前', '人通りが多い時間帯あり'),
+  (35.7475, 139.7148, 'purple', '次回候補', '次回はこの辺りで配りたい');

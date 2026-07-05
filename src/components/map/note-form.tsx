@@ -35,7 +35,7 @@ function ColorPicker({
   onChange,
 }: {
   value: string;
-  onChange: (color: string, presetLabel: string) => void;
+  onChange: (color: string) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
@@ -43,7 +43,7 @@ function ColorPicker({
         <button
           key={p.value}
           type="button"
-          onClick={() => onChange(p.value, p.label)}
+          onClick={() => onChange(p.value)}
           className={cn(
             "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-bold transition-colors",
             value === p.value ? "border-foreground" : "border-transparent bg-muted"
@@ -59,7 +59,7 @@ function ColorPicker({
 
 export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, onDelete }: Props) {
   const [color, setColor] = useState(initial?.color ?? NOTE_PRESETS[0].value);
-  const [label, setLabel] = useState(initial?.label ?? (initial ? "" : NOTE_PRESETS[0].label));
+  const [label, setLabel] = useState(initial?.label ?? "");
   const [memo, setMemo] = useState(initial?.memo ?? "");
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(
     initial?.lat != null && initial?.lng != null ? { lat: initial.lat, lng: initial.lng } : null
@@ -93,21 +93,18 @@ export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <Label>色・種類</Label>
-        <ColorPicker
-          value={color}
-          onChange={(c, presetLabel) => {
-            setColor(c);
-            if (!label.trim()) setLabel(presetLabel);
-          }}
-        />
+        <Label>色</Label>
+        <ColorPicker value={color} onChange={setColor} />
+        <p className="text-xs text-muted-foreground">
+          色の使い分けは自由です（チーム内のルールでどうぞ）
+        </p>
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="note-label">見出し</Label>
         <Input
           id="note-label"
-          placeholder="例: 交通誘導員"
+          placeholder="任意の見出し"
           value={label}
           onChange={(e) => setLabel(e.target.value)}
         />

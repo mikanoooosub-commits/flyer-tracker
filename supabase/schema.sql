@@ -23,14 +23,14 @@ alter table public.schools add column if not exists lng double precision;
 -- ────────────────────────────────────────────────────────────────────────────
 -- map_notes（マップメモ）
 -- 配布実績とは別に、地図上へ色付きの目印＋メモを置く機能。
--- 例: 交通誘導員がいる場所（黄）、次に配りたい候補地（紫）など。
+-- 色＋見出し＋メモの汎用的な目印。色に固定の意味は持たせず、用途は利用者が自由に決める。
 -- ────────────────────────────────────────────────────────────────────────────
 create table if not exists public.map_notes (
   id         uuid primary key default gen_random_uuid(),
   lat        double precision not null,
   lng        double precision not null,
   color      text not null default 'yellow',  -- 色トークン（アプリ側で色に対応付け）
-  label      text,                             -- 見出し（例: 交通誘導員）
+  label      text,                             -- 見出し（自由入力）
   memo       text,                             -- 詳細メモ
   user_id    uuid references auth.users(id) default auth.uid(),
   created_at timestamptz not null default now(),

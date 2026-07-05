@@ -86,13 +86,13 @@ export type MapNote = {
   updated_at: string;
 };
 
-/** メモの色プリセット（value=保存する色トークン、color=表示色） */
+/** メモの色プリセット（色自体に意味は持たせない。用途は見出し・メモで自由に） */
 export const NOTE_PRESETS: { value: string; label: string; color: string }[] = [
-  { value: "yellow", label: "交通誘導員", color: "#eab308" },
-  { value: "purple", label: "配布地候補", color: "#8b5cf6" },
-  { value: "red", label: "注意", color: "#ef4444" },
-  { value: "blue", label: "メモ(青)", color: "#3b82f6" },
-  { value: "green", label: "メモ(緑)", color: "#22c55e" },
+  { value: "yellow", label: "黄", color: "#eab308" },
+  { value: "purple", label: "紫", color: "#8b5cf6" },
+  { value: "red", label: "赤", color: "#ef4444" },
+  { value: "blue", label: "青", color: "#3b82f6" },
+  { value: "green", label: "緑", color: "#22c55e" },
 ];
 
 export const NOTE_COLOR_MAP: Record<string, string> = Object.fromEntries(
