@@ -27,9 +27,11 @@ import type { PinHistoryItem } from "@/components/map/flyer-map";
 import {
   createLocationAtAction,
   setLocationCoordsAction,
+  createMapNoteAction,
   updateMapNoteAction,
   deleteMapNoteAction,
 } from "@/lib/data/actions";
+import { cn } from "@/lib/utils";
 import { noteColor, type Rating, type School, type VisitWithRelations, type MapNote } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
 
@@ -133,7 +135,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
       <p className="px-4 pt-2 text-center text-xs text-muted-foreground">
         {placeId
           ? "地図をタップして位置を指定してください。"
-          : "ピンをクリックで一覧、カーソルで履歴。地図タップで配布場所を登録。メモは「登録」から追加できます。"}
+          : "ピンをクリックで一覧、カーソルで履歴。地図タップでその地点に配布場所・メモを登録できます。"}
       </p>
 
       {/* 新規配布場所の登録ダイアログ */}
@@ -268,13 +270,61 @@ function NewLocationDialog({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const [mode, setMode] = useState<"location" | "note">("location");
+
+  function handleOpenChange(open: boolean) {
+    if (!open) {
+      onClose();
+      setMode("location");
+    }
+  }
+
   return (
-    <Dialog open={coords !== null} onOpenChange={(o) => !o && onClose()}>
+    <Dialog open={coords !== null} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>この地点に配布場所を登録</DialogTitle>
+          <DialogTitle>この地点に登録</DialogTitle>
         </DialogHeader>
-        {coords && <NewLocationBody schools={schools} initial={coords} onCreated={onCreated} />}
+
+        {/* 種別トグル（登録ボタンのダイアログと同じ構成） */}
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setMode("location")}
+            className={cn(
+              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              mode === "location"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            配布場所
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("note")}
+            className={cn(
+              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              mode === "note"
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground"
+            )}
+          >
+            マップメモ
+          </button>
+        </div>
+
+        {coords &&
+          (mode === "location" ? (
+            <NewLocationBody schools={schools} initial={coords} onCreated={onCreated} />
+          ) : (
+            <NoteForm
+              initial={{ lat: coords.lat, lng: coords.lng }}
+              submitLabel="メモを登録"
+              onSubmit={(v) => createMapNoteAction(v.lat, v.lng, v.color, v.label, v.memo)}
+              onSuccess={onCreated}
+            />
+          ))}
       </DialogContent>
     </Dialog>
   );
