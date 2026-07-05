@@ -19,9 +19,16 @@ export async function GET(request: NextRequest) {
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(`${origin}${next}`);
-  } else if (tokenHash && type) {
-    const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(`${origin}${next}`);
+  } else if (tokenHash) {
+    // メールテンプレートの type 値の差異（email / magiclink）に耐えるよう、
+    // 指定 type で失敗したらもう片方でも試す。
+    const primary = (type ?? "email") as EmailOtpType;
+    let result = await supabase.auth.verifyOtp({ type: primary, token_hash: tokenHash });
+    if (result.error && (primary === "email" || primary === "magiclink")) {
+      const alt = (primary === "email" ? "magiclink" : "email") as EmailOtpType;
+      result = await supabase.auth.verifyOtp({ type: alt, token_hash: tokenHash });
+    }
+    if (!result.error) return NextResponse.redirect(`${origin}${next}`);
   }
 
   return NextResponse.redirect(`${origin}/login?error=auth`);
