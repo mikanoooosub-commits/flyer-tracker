@@ -26,7 +26,9 @@ import { VisitRow } from "@/components/visits/visit-row";
 import { VisitTableRow } from "@/components/visits/visit-table-row";
 import { VisitForm } from "@/components/visits/visit-form";
 import { LocationPicker } from "@/components/map/location-picker";
-import { createVisitAction, setLocationCoordsAction } from "@/lib/data/actions";
+import { NoteForm } from "@/components/map/note-form";
+import { createVisitAction, setLocationCoordsAction, createMapNoteAction } from "@/lib/data/actions";
+import { cn } from "@/lib/utils";
 import type { School, VisitWithRelations } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
 import { formatDatePadded, formatTimeRange } from "@/lib/format";
@@ -65,6 +67,7 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
   const router = useRouter();
   const searchParams = useSearchParams();
   const [createOpen, setCreateOpen] = useState(false);
+  const [registerType, setRegisterType] = useState<"visit" | "note">("visit");
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
@@ -107,27 +110,67 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
         />
       )}
 
-      {/* 新規登録 */}
+      {/* 新規登録（配布実績 or マップメモ） */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogTrigger asChild>
           <Button size="lg" className="gap-2">
             <Plus className="size-5" />
-            配布実績を登録
+            登録
           </Button>
         </DialogTrigger>
         <DialogContent className="max-h-[85dvh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>配布実績を登録</DialogTitle>
+            <DialogTitle>登録</DialogTitle>
           </DialogHeader>
-          <VisitForm
-            schools={schools}
-            submitLabel="登録する"
-            onSubmit={createVisitAction}
-            onSuccess={() => {
-              setCreateOpen(false);
-              router.refresh();
-            }}
-          />
+
+          {/* 種別トグル */}
+          <div className="flex gap-1">
+            <button
+              type="button"
+              onClick={() => setRegisterType("visit")}
+              className={cn(
+                "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+                registerType === "visit"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground"
+              )}
+            >
+              配布実績
+            </button>
+            <button
+              type="button"
+              onClick={() => setRegisterType("note")}
+              className={cn(
+                "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+                registerType === "note"
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-border bg-card text-muted-foreground"
+              )}
+            >
+              マップメモ
+            </button>
+          </div>
+
+          {registerType === "visit" ? (
+            <VisitForm
+              schools={schools}
+              submitLabel="登録する"
+              onSubmit={createVisitAction}
+              onSuccess={() => {
+                setCreateOpen(false);
+                router.refresh();
+              }}
+            />
+          ) : (
+            <NoteForm
+              submitLabel="メモを登録"
+              onSubmit={(v) => createMapNoteAction(v.lat, v.lng, v.color, v.label, v.memo)}
+              onSuccess={() => {
+                setCreateOpen(false);
+                router.refresh();
+              }}
+            />
+          )}
         </DialogContent>
       </Dialog>
 

@@ -3,12 +3,11 @@
 import { useMemo, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
-import { X, Crosshair, MapPin, StickyNote, Trash2 } from "lucide-react";
+import { X, Crosshair } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -23,24 +22,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LocationPicker } from "@/components/map/location-picker";
+import { NoteForm } from "@/components/map/note-form";
 import type { PinHistoryItem } from "@/components/map/flyer-map";
 import {
   createLocationAtAction,
   setLocationCoordsAction,
-  createMapNoteAction,
   updateMapNoteAction,
   deleteMapNoteAction,
 } from "@/lib/data/actions";
-import {
-  NOTE_PRESETS,
-  noteColor,
-  type Rating,
-  type School,
-  type VisitWithRelations,
-  type MapNote,
-} from "@/lib/types";
+import { noteColor, type Rating, type School, type VisitWithRelations, type MapNote } from "@/lib/types";
 import type { LocationWithSchool } from "@/lib/data/queries";
-import { cn } from "@/lib/utils";
 
 const FlyerMap = dynamic(() => import("@/components/map/flyer-map"), {
   ssr: false,
@@ -52,8 +43,6 @@ const FlyerMap = dynamic(() => import("@/components/map/flyer-map"), {
 });
 
 const DEFAULT_CENTER: [number, number] = [35.6812, 139.7671]; // 東京駅
-
-type Mode = "location" | "note";
 
 type Props = {
   schools: School[];
@@ -68,10 +57,8 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
   const searchParams = useSearchParams();
   const placeId = searchParams.get("place");
 
-  const [mode, setMode] = useState<Mode>("location");
   const [newLoc, setNewLoc] = useState<{ lat: number; lng: number } | null>(null);
   const [placeDraft, setPlaceDraft] = useState<{ lat: number; lng: number } | null>(null);
-  const [noteDraft, setNoteDraft] = useState<{ lat: number; lng: number } | null>(null);
   const [editingNote, setEditingNote] = useState<MapNote | null>(null);
 
   const placedLocations = useMemo(
@@ -91,35 +78,21 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
   }, [visits]);
 
   const center = useMemo<[number, number]>(() => {
-    const pts = [...placedLocations.map((l) => [l.lat as number, l.lng as number] as const)];
-    if (pts.length === 0) return DEFAULT_CENTER;
-    const lat = pts.reduce((s, p) => s + p[0], 0) / pts.length;
-    const lng = pts.reduce((s, p) => s + p[1], 0) / pts.length;
+    if (placedLocations.length === 0) return DEFAULT_CENTER;
+    const lat =
+      placedLocations.reduce((s, l) => s + (l.lat as number), 0) / placedLocations.length;
+    const lng =
+      placedLocations.reduce((s, l) => s + (l.lng as number), 0) / placedLocations.length;
     return [lat, lng];
   }, [placedLocations]);
 
   function handleMapClick(lat: number, lng: number) {
     if (placeId) setPlaceDraft({ lat, lng });
-    else if (mode === "note") setNoteDraft({ lat, lng });
     else setNewLoc({ lat, lng });
   }
 
   return (
     <div className="flex flex-col">
-      {/* 追加モードの切り替え */}
-      {!placeId && (
-        <div className="flex gap-1 px-4 pb-2">
-          <ModeButton active={mode === "location"} onClick={() => setMode("location")}>
-            <MapPin className="size-4" />
-            配布場所
-          </ModeButton>
-          <ModeButton active={mode === "note"} onClick={() => setMode("note")}>
-            <StickyNote className="size-4" />
-            メモ
-          </ModeButton>
-        </div>
-      )}
-
       {/* 凡例 */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-2 text-xs">
         <span className="font-bold text-muted-foreground">評価:</span>
@@ -141,7 +114,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
       )}
 
       {/* 地図本体（isolate で Leaflet の高い z-index を閉じ込め、ダイアログを前面に保つ） */}
-      <div className="relative z-0 h-[calc(100dvh-12.5rem)] w-full overflow-hidden [isolation:isolate]">
+      <div className="relative z-0 h-[calc(100dvh-11rem)] w-full overflow-hidden [isolation:isolate]">
         <FlyerMap
           placedLocations={placedLocations}
           ratings={ratings}
@@ -160,9 +133,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
       <p className="px-4 pt-2 text-center text-xs text-muted-foreground">
         {placeId
           ? "地図をタップして位置を指定してください。"
-          : mode === "note"
-            ? "「メモ」モード: 地図をタップで色付きメモを追加。ピンにカーソルでメモ表示。"
-            : "「配布場所」モード: 地図をタップで配布場所を登録。ピンのクリックで一覧、カーソルで履歴。"}
+          : "ピンをクリックで一覧、カーソルで履歴。地図タップで配布場所を登録。メモは「登録」から追加できます。"}
       </p>
 
       {/* 新規配布場所の登録ダイアログ */}
@@ -190,51 +161,41 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         }}
       />
 
-      {/* マップメモ 新規 */}
-      <NoteCreateDialog
-        coords={noteDraft}
-        onClose={() => setNoteDraft(null)}
-        onCreated={() => {
-          setNoteDraft(null);
-          router.refresh();
-        }}
-      />
-
       {/* マップメモ 編集・削除 */}
-      <NoteEditDialog
-        note={editingNote}
-        onClose={() => setEditingNote(null)}
-        onDone={() => {
-          setEditingNote(null);
-          router.refresh();
-        }}
-      />
+      <Dialog open={editingNote !== null} onOpenChange={(o) => !o && setEditingNote(null)}>
+        <DialogContent className="max-h-[85dvh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-1.5">
+              <span
+                className="inline-block size-3.5 rounded-full"
+                style={{ background: editingNote ? noteColor(editingNote.color) : undefined }}
+              />
+              マップメモを編集
+            </DialogTitle>
+          </DialogHeader>
+          {editingNote && (
+            <NoteForm
+              initial={{
+                color: editingNote.color,
+                label: editingNote.label ?? "",
+                memo: editingNote.memo ?? "",
+                lat: editingNote.lat,
+                lng: editingNote.lng,
+              }}
+              submitLabel="保存する"
+              onSubmit={(v) =>
+                updateMapNoteAction(editingNote.id, v.color, v.label, v.memo, v.lat, v.lng)
+              }
+              onDelete={() => deleteMapNoteAction(editingNote.id)}
+              onSuccess={() => {
+                setEditingNote(null);
+                router.refresh();
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
-  );
-}
-
-function ModeButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
-        active
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-border bg-card text-muted-foreground"
-      )}
-    >
-      {children}
-    </button>
   );
 }
 
@@ -282,7 +243,7 @@ function PlaceConfirmBody({
     <>
       <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
       <p className="text-xs text-muted-foreground">
-        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（タップまたはドラッグで微調整）
+        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（現在地・タップ・ドラッグで微調整）
       </p>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={onClose}>
@@ -380,7 +341,7 @@ function NewLocationBody({
         />
       </div>
       <div className="flex flex-col gap-2">
-        <Label>位置（検索／タップ／ドラッグで調整）</Label>
+        <Label>位置（現在地・検索・タップ・ドラッグで調整）</Label>
         <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
         <p className="text-xs text-muted-foreground">
           緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
@@ -390,210 +351,6 @@ function NewLocationBody({
       <Button onClick={handleCreate} disabled={pending}>
         {pending ? "登録中…" : "この位置で配布場所を登録"}
       </Button>
-    </>
-  );
-}
-
-// ── マップメモ ───────────────────────────────────────────────────────────────
-
-function ColorPicker({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (color: string, presetLabel: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {NOTE_PRESETS.map((p) => (
-        <button
-          key={p.value}
-          type="button"
-          onClick={() => onChange(p.value, p.label)}
-          className={cn(
-            "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-bold transition-colors",
-            value === p.value ? "border-foreground" : "border-transparent bg-muted"
-          )}
-        >
-          <span className="inline-block size-3 rounded-full" style={{ background: p.color }} />
-          {p.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function NoteCreateDialog({
-  coords,
-  onClose,
-  onCreated,
-}: {
-  coords: { lat: number; lng: number } | null;
-  onClose: () => void;
-  onCreated: () => void;
-}) {
-  return (
-    <Dialog open={coords !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>マップメモを追加</DialogTitle>
-        </DialogHeader>
-        {coords && <NoteCreateBody initial={coords} onCreated={onCreated} />}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function NoteCreateBody({
-  initial,
-  onCreated,
-}: {
-  initial: { lat: number; lng: number };
-  onCreated: () => void;
-}) {
-  const [color, setColor] = useState(NOTE_PRESETS[0].value);
-  const [label, setLabel] = useState(NOTE_PRESETS[0].label);
-  const [memo, setMemo] = useState("");
-  const [pos, setPos] = useState(initial);
-  const [error, setError] = useState("");
-  const [pending, startTransition] = useTransition();
-
-  function handleCreate() {
-    setError("");
-    startTransition(async () => {
-      const result = await createMapNoteAction(pos.lat, pos.lng, color, label, memo);
-      if (result.ok) onCreated();
-      else setError(result.error);
-    });
-  }
-
-  return (
-    <>
-      <div className="flex flex-col gap-2">
-        <Label>色・種類</Label>
-        <ColorPicker
-          value={color}
-          onChange={(c, presetLabel) => {
-            setColor(c);
-            if (!label.trim()) setLabel(presetLabel);
-          }}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="note-label">見出し</Label>
-        <Input
-          id="note-label"
-          placeholder="例: 交通誘導員"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="note-memo">メモ</Label>
-        <Textarea
-          id="note-memo"
-          placeholder="詳細メモ（任意）"
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label>位置（検索／タップ／ドラッグで調整）</Label>
-        <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button onClick={handleCreate} disabled={pending}>
-        {pending ? "登録中…" : "メモを追加"}
-      </Button>
-    </>
-  );
-}
-
-function NoteEditDialog({
-  note,
-  onClose,
-  onDone,
-}: {
-  note: MapNote | null;
-  onClose: () => void;
-  onDone: () => void;
-}) {
-  return (
-    <Dialog open={note !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[85dvh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-1.5">
-            <span
-              className="inline-block size-3.5 rounded-full"
-              style={{ background: note ? noteColor(note.color) : undefined }}
-            />
-            マップメモ
-          </DialogTitle>
-        </DialogHeader>
-        {note && <NoteEditBody note={note} onDone={onDone} />}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function NoteEditBody({ note, onDone }: { note: MapNote; onDone: () => void }) {
-  const [color, setColor] = useState(note.color);
-  const [label, setLabel] = useState(note.label ?? "");
-  const [memo, setMemo] = useState(note.memo ?? "");
-  const [error, setError] = useState("");
-  const [pending, startTransition] = useTransition();
-
-  function handleSave() {
-    setError("");
-    startTransition(async () => {
-      const result = await updateMapNoteAction(note.id, color, label, memo);
-      if (result.ok) onDone();
-      else setError(result.error);
-    });
-  }
-
-  function handleDelete() {
-    setError("");
-    startTransition(async () => {
-      const result = await deleteMapNoteAction(note.id);
-      if (result.ok) onDone();
-      else setError(result.error);
-    });
-  }
-
-  return (
-    <>
-      <div className="flex flex-col gap-2">
-        <Label>色・種類</Label>
-        <ColorPicker value={color} onChange={(c) => setColor(c)} />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="note-edit-label">見出し</Label>
-        <Input
-          id="note-edit-label"
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="note-edit-memo">メモ</Label>
-        <Textarea id="note-edit-memo" value={memo} onChange={(e) => setMemo(e.target.value)} />
-      </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          className="gap-1.5 text-destructive"
-          onClick={handleDelete}
-          disabled={pending}
-        >
-          <Trash2 className="size-4" />
-          削除
-        </Button>
-        <Button className="flex-1" onClick={handleSave} disabled={pending}>
-          {pending ? "保存中…" : "保存する"}
-        </Button>
-      </div>
     </>
   );
 }

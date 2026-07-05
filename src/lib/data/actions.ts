@@ -232,14 +232,22 @@ export async function updateMapNoteAction(
   id: string,
   color: string,
   label: string,
-  memo: string
+  memo: string,
+  lat?: number,
+  lng?: number
 ): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const { error } = await supabase
-      .from("map_notes")
-      .update({ color, label: label.trim() || null, memo: memo.trim() || null })
-      .eq("id", id);
+    const patch: Record<string, unknown> = {
+      color,
+      label: label.trim() || null,
+      memo: memo.trim() || null,
+    };
+    if (lat != null && lng != null) {
+      patch.lat = lat;
+      patch.lng = lng;
+    }
+    const { error } = await supabase.from("map_notes").update(patch).eq("id", id);
     if (error) throw error;
 
     revalidatePath("/map");
