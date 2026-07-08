@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef } from "react";
-import { MapContainer, TileLayer, Marker, Tooltip, Popup, useMapEvents } from "react-leaflet";
+import { useEffect, useRef } from "react";
+import { MapContainer, TileLayer, Marker, Tooltip, Popup, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -43,6 +43,40 @@ function makeNoteIcon(color: string) {
     iconSize: [24, 24],
     iconAnchor: [12, 12],
   });
+}
+
+/** 現在地マーカー。heading があれば向きの扇形（コーン）を表示。 */
+function makeCurrentIcon(heading: number | null) {
+  const fan =
+    heading == null
+      ? ""
+      : `<path d="M32 32 L15 5 L49 5 Z" fill="rgba(37,99,235,0.30)" stroke="rgba(37,99,235,0.5)" stroke-width="1"/>`;
+  const rot = heading == null ? 0 : heading;
+  const html = `<div style="width:64px;height:64px;transform:rotate(${rot}deg);transform-origin:32px 32px;">
+    <svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+      ${fan}
+      <circle cx="32" cy="32" r="8" fill="#2563eb" stroke="white" stroke-width="3"/>
+    </svg>
+  </div>`;
+  return L.divIcon({
+    html,
+    className: "flyer-current",
+    iconSize: [64, 64],
+    iconAnchor: [32, 32],
+  });
+}
+
+/** panTarget.seq が変わったときだけ一度だけその位置へ移動する */
+function PanTo({ target }: { target: { lat: number; lng: number; seq: number } | null }) {
+  const map = useMap();
+  const lastSeq = useRef(-1);
+  useEffect(() => {
+    if (target && target.seq !== lastSeq.current) {
+      lastSeq.current = target.seq;
+      map.setView([target.lat, target.lng]);
+    }
+  }, [target, map]);
+  return null;
 }
 
 function ClickHandler({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
@@ -153,6 +187,9 @@ type Props = {
   history: Record<string, PinHistoryItem[]>;
   notes: MapNote[];
   center: [number, number];
+  currentPosition: { lat: number; lng: number } | null;
+  heading: number | null;
+  panTarget: { lat: number; lng: number; seq: number } | null;
   onMapClick: (lat: number, lng: number) => void;
   onPinClick: (locationId: string) => void;
   onNoteClick: (noteId: string) => void;
@@ -164,6 +201,9 @@ export default function FlyerMap({
   history,
   notes,
   center,
+  currentPosition,
+  heading,
+  panTarget,
   onMapClick,
   onPinClick,
   onNoteClick,
@@ -175,6 +215,15 @@ export default function FlyerMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ClickHandler onMapClick={onMapClick} />
+      <PanTo target={panTarget} />
+      {currentPosition && (
+        <Marker
+          position={[currentPosition.lat, currentPosition.lng]}
+          icon={makeCurrentIcon(heading)}
+          interactive={false}
+          zIndexOffset={1000}
+        />
+      )}
       {placedLocations.map((loc) => (
         <HoverMarker
           key={loc.id}

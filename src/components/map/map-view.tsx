@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { X, Crosshair } from "lucide-react";
+
+import { useGeoTracking } from "@/lib/use-geo-tracking";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,6 +65,31 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
   const [placeDraft, setPlaceDraft] = useState<{ lat: number; lng: number } | null>(null);
   const [editingNote, setEditingNote] = useState<MapNote | null>(null);
 
+  // 現在地トラッキング
+  const track = useGeoTracking();
+  const [panTarget, setPanTarget] = useState<{ lat: number; lng: number; seq: number } | null>(null);
+  const panSeqRef = useRef(0);
+  const centerPendingRef = useRef(false);
+
+  const currentPos = useMemo(
+    () => (track.position ? { lat: track.position.lat, lng: track.position.lng } : null),
+    [track.position]
+  );
+
+  function handleTrackingToggle() {
+    // トラッキング開始時、最初の測位で1度だけ現在地へ寄せる
+    if (!track.tracking) centerPendingRef.current = true;
+    track.toggle();
+  }
+
+  useEffect(() => {
+    if (centerPendingRef.current && track.position) {
+      panSeqRef.current += 1;
+      setPanTarget({ lat: track.position.lat, lng: track.position.lng, seq: panSeqRef.current });
+      centerPendingRef.current = false;
+    }
+  }, [track.position]);
+
   const placedLocations = useMemo(
     () => locations.filter((l) => l.lat != null && l.lng != null),
     [locations]
@@ -104,6 +131,30 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         <LegendDot color="#9ca3af" label="履歴なし" />
       </div>
 
+      {/* 現在地トラッキング */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pb-2 text-sm">
+        <label className="flex items-center gap-2 font-medium">
+          <input
+            type="checkbox"
+            className="size-4 accent-primary"
+            checked={track.tracking}
+            onChange={handleTrackingToggle}
+          />
+          現在地トラッキング
+        </label>
+        {track.error ? (
+          <span className="text-xs text-destructive">{track.error}</span>
+        ) : track.tracking ? (
+          <span className="text-xs text-muted-foreground">
+            {track.position
+              ? `追従中（精度 ±${Math.round(track.position.accuracy)}m${
+                  track.heading == null ? "・向きなし" : ""
+                }）`
+              : "取得中…"}
+          </span>
+        ) : null}
+      </div>
+
       {/* 配置モードのバナー */}
       {placeId && (
         <div className="mx-4 mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
@@ -116,13 +167,16 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
       )}
 
       {/* 地図本体（isolate で Leaflet の高い z-index を閉じ込め、ダイアログを前面に保つ） */}
-      <div className="relative z-0 h-[calc(100dvh-15.5rem)] w-full overflow-hidden [isolation:isolate]">
+      <div className="relative z-0 h-[calc(100dvh-18rem)] w-full overflow-hidden [isolation:isolate]">
         <FlyerMap
           placedLocations={placedLocations}
           ratings={ratings}
           history={history}
           notes={notes}
           center={center}
+          currentPosition={currentPos}
+          heading={track.heading}
+          panTarget={panTarget}
           onMapClick={handleMapClick}
           onPinClick={(id) => router.push(`/list?location=${id}`)}
           onNoteClick={(id) => {

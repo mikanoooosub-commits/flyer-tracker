@@ -227,6 +227,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-weight: 700;
 }
 
+/* 現在地マーカー */
+.flyer-current {
+  background: transparent;
+  border: none;
+}
+
 /* マップメモのホバー吹き出し */
 .flyer-note {
   background: transparent;
