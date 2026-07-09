@@ -106,6 +106,8 @@ export function noteColor(token: string): string {
 
 // ── フォーム入力・アクション結果 ─────────────────────────────────────────────
 export type VisitInput = {
+  /** 既存の配布場所を選んだ場合はその id。新規作成なら null（schoolId+spot から解決） */
+  locationId: string | null;
   schoolId: string;
   spot: string;
   date: string;

@@ -30,7 +30,7 @@ export default async function MapHomePage() {
     <>
       <AppHeader title="地図" subtitle="配布場所のピン・メモ" />
       <div className="px-4 pt-3 pb-2">
-        <RegisterDialog schools={schools} />
+        <RegisterDialog schools={schools} locations={locations} />
       </div>
       <MapView
         schools={schools}

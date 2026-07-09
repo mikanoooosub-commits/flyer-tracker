@@ -17,13 +17,16 @@ import { NoteForm } from "@/components/map/note-form";
 import { createVisitAction, createMapNoteAction } from "@/lib/data/actions";
 import { cn } from "@/lib/utils";
 import type { School } from "@/lib/types";
+import type { LocationWithSchool } from "@/lib/data/queries";
 
 /** 配布実績／マップメモの新規登録ダイアログ（地図・一覧の両方から使う） */
 export function RegisterDialog({
   schools,
+  locations,
   className,
 }: {
   schools: School[];
+  locations: LocationWithSchool[];
   className?: string;
 }) {
   const router = useRouter();
@@ -74,6 +77,7 @@ export function RegisterDialog({
         {registerType === "visit" ? (
           <VisitForm
             schools={schools}
+            locations={locations}
             submitLabel="登録する"
             onSubmit={createVisitAction}
             onSuccess={() => {

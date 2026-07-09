@@ -15,6 +15,7 @@ import {
 import { VisitForm } from "@/components/visits/visit-form";
 import { VisitLogDialog } from "@/components/visits/visit-log-dialog";
 import { updateVisitAction, setVisitDeletedAction } from "@/lib/data/actions";
+import type { LocationWithSchool } from "@/lib/data/queries";
 import {
   RATING_META,
   type School,
@@ -26,9 +27,11 @@ import { formatDatePadded, formatTimeRange } from "@/lib/format";
 export function VisitTableRow({
   visit,
   schools,
+  locations,
 }: {
   visit: VisitWithRelations;
   schools: School[];
+  locations: LocationWithSchool[];
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -42,6 +45,7 @@ export function VisitTableRow({
   const dt = `${formatDatePadded(visit.date)}${timeRange ? ` ${timeRange}` : ""}`;
 
   const initial: Partial<VisitInput> = {
+    locationId: visit.location_id,
     schoolId: visit.location?.school_id ?? "",
     spot: visit.location?.spot ?? "",
     date: visit.date,
@@ -98,6 +102,7 @@ export function VisitTableRow({
                 </DialogHeader>
                 <VisitForm
                   schools={schools}
+                  locations={locations}
                   initial={initial}
                   submitLabel="保存する"
                   onSubmit={(input) => updateVisitAction(visit.id, input)}

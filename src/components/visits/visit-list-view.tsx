@@ -50,6 +50,7 @@ function buildTsv(visits: VisitWithRelations[]): string {
 
 type Props = {
   schools: School[];
+  locations: LocationWithSchool[];
   visits: VisitWithRelations[];
   filters: {
     from: string;
@@ -62,7 +63,7 @@ type Props = {
   activeLocation: LocationWithSchool | null;
 };
 
-export function VisitListView({ schools, visits, filters, activeLocation }: Props) {
+export function VisitListView({ schools, locations, visits, filters, activeLocation }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
@@ -103,12 +104,13 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
         <LocationBanner
           location={activeLocation}
           schools={schools}
+          locations={locations}
           onClear={() => router.push("/list")}
         />
       )}
 
       {/* 新規登録（配布実績 or マップメモ） */}
-      <RegisterDialog schools={schools} />
+      <RegisterDialog schools={schools} locations={locations} />
 
       {/* フィルタ */}
       <Card>
@@ -220,7 +222,7 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
           {/* スマホ: カード表示 */}
           <div className="flex flex-col gap-3 md:hidden">
             {visits.map((v) => (
-              <VisitRow key={v.id} visit={v} schools={schools} />
+              <VisitRow key={v.id} visit={v} schools={schools} locations={locations} />
             ))}
           </div>
 
@@ -239,7 +241,7 @@ export function VisitListView({ schools, visits, filters, activeLocation }: Prop
               </thead>
               <tbody>
                 {visits.map((v) => (
-                  <VisitTableRow key={v.id} visit={v} schools={schools} />
+                  <VisitTableRow key={v.id} visit={v} schools={schools} locations={locations} />
                 ))}
               </tbody>
             </table>
@@ -262,10 +264,12 @@ function SummaryCell({ label, value }: { label: string; value: string }) {
 function LocationBanner({
   location,
   schools,
+  locations,
   onClear,
 }: {
   location: LocationWithSchool;
   schools: School[];
+  locations: LocationWithSchool[];
   onClear: () => void;
 }) {
   const router = useRouter();
@@ -306,7 +310,9 @@ function LocationBanner({
             </DialogHeader>
             <VisitForm
               schools={schools}
+              locations={locations}
               initial={{
+                locationId: location.id,
                 schoolId: location.school_id ?? "",
                 spot: location.spot ?? "",
                 lat: location.lat,

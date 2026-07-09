@@ -1,6 +1,11 @@
 import { AppHeader } from "@/components/app-header";
 import { VisitListView } from "@/components/visits/visit-list-view";
-import { getSchools, getVisits, getLocationById } from "@/lib/data/queries";
+import {
+  getSchools,
+  getVisits,
+  getLocationById,
+  getLocationsWithSchool,
+} from "@/lib/data/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -24,8 +29,9 @@ export default async function ListPage({ searchParams }: { searchParams: SearchP
     hideZero: sp.hidezero === "1",
   };
 
-  const [schools, visits, activeLocation] = await Promise.all([
+  const [schools, locations, visits, activeLocation] = await Promise.all([
     getSchools(),
+    getLocationsWithSchool(),
     getVisits({
       from: filters.from || undefined,
       to: filters.to || undefined,
@@ -43,6 +49,7 @@ export default async function ListPage({ searchParams }: { searchParams: SearchP
       <main className="px-4 py-4">
         <VisitListView
           schools={schools}
+          locations={locations}
           visits={visits}
           filters={filters}
           activeLocation={activeLocation}

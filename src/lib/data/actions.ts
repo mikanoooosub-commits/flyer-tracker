@@ -47,11 +47,18 @@ async function applyCoords(
   }
 }
 
+/** 既存location指定ならそれを使い、無ければ school+spot で解決して座標も反映 */
+async function resolveVisitLocation(supabase: SupabaseClient, input: VisitInput): Promise<string> {
+  if (input.locationId) return input.locationId;
+  const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
+  await applyCoords(supabase, locationId, input.lat, input.lng);
+  return locationId;
+}
+
 export async function createVisitAction(input: VisitInput): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
-    await applyCoords(supabase, locationId, input.lat, input.lng);
+    const locationId = await resolveVisitLocation(supabase, input);
 
     const { error } = await supabase.from("visits").insert({
       location_id: locationId,
@@ -78,8 +85,7 @@ export async function updateVisitAction(
 ): Promise<ActionResult> {
   try {
     const supabase = await createClient();
-    const locationId = await resolveLocationId(supabase, input.schoolId, input.spot);
-    await applyCoords(supabase, locationId, input.lat, input.lng);
+    const locationId = await resolveVisitLocation(supabase, input);
 
     const { error } = await supabase
       .from("visits")

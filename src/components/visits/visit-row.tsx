@@ -17,14 +17,17 @@ import {
   type VisitWithRelations,
 } from "@/lib/types";
 import { updateVisitAction, setVisitDeletedAction } from "@/lib/data/actions";
+import type { LocationWithSchool } from "@/lib/data/queries";
 import { formatDate, formatTimeRange } from "@/lib/format";
 
 export function VisitRow({
   visit,
   schools,
+  locations,
 }: {
   visit: VisitWithRelations;
   schools: School[];
+  locations: LocationWithSchool[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
@@ -37,6 +40,7 @@ export function VisitRow({
   const timeRange = formatTimeRange(visit.start_time, visit.end_time);
 
   const initial: Partial<VisitInput> = {
+    locationId: visit.location_id,
     schoolId: visit.location?.school_id ?? "",
     spot: visit.location?.spot ?? "",
     date: visit.date,
@@ -62,6 +66,7 @@ export function VisitRow({
         <CardContent>
           <VisitForm
             schools={schools}
+            locations={locations}
             initial={initial}
             submitLabel="保存する"
             onSubmit={(input) => updateVisitAction(visit.id, input)}

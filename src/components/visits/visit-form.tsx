@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { MapPin, MapPinOff } from "lucide-react";
 
 import { LocationPicker } from "@/components/map/location-picker";
 import { Button } from "@/components/ui/button";
@@ -22,12 +23,15 @@ import {
   type VisitInput,
   type ActionResult,
 } from "@/lib/types";
+import type { LocationWithSchool } from "@/lib/data/queries";
 import { todayISO } from "@/lib/format";
 
 const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
+const NEW_PLACE = "__new__";
 
 type Props = {
   schools: School[];
+  locations: LocationWithSchool[];
   initial?: Partial<VisitInput>;
   submitLabel: string;
   onSubmit: (input: VisitInput) => Promise<ActionResult>;
@@ -37,37 +41,48 @@ type Props = {
 
 export function VisitForm({
   schools,
+  locations,
   initial,
   submitLabel,
   onSubmit,
   onSuccess,
   onCancel,
 }: Props) {
+  // 配布場所の選択: 既存location id / NEW_PLACE(新規) / ""(未選択)
+  const [placeChoice, setPlaceChoice] = useState<string>(
+    initial?.locationId ?? (locations.length > 0 ? "" : NEW_PLACE)
+  );
+
+  // 新規作成時の入力
   const [schoolId, setSchoolId] = useState(initial?.schoolId ?? "");
   const [spot, setSpot] = useState(initial?.spot ?? "");
-  const [date, setDate] = useState(initial?.date ?? todayISO());
-  const [startTime, setStartTime] = useState(initial?.startTime ?? "");
-  const [endTime, setEndTime] = useState(initial?.endTime ?? "");
-  const [count, setCount] = useState(
-    initial?.count != null ? String(initial.count) : ""
-  );
-  const [rating, setRating] = useState<Rating>(initial?.rating ?? "normal");
-  const [memo, setMemo] = useState(initial?.memo ?? "");
   const [latLng, setLatLng] = useState<{ lat: number; lng: number } | null>(
     initial?.lat != null && initial?.lng != null
       ? { lat: initial.lat, lng: initial.lng }
       : null
   );
+
+  // 実績の入力
+  const [date, setDate] = useState(initial?.date ?? todayISO());
+  const [startTime, setStartTime] = useState(initial?.startTime ?? "");
+  const [endTime, setEndTime] = useState(initial?.endTime ?? "");
+  const [count, setCount] = useState(initial?.count != null ? String(initial.count) : "");
+  const [rating, setRating] = useState<Rating>(initial?.rating ?? "normal");
+  const [memo, setMemo] = useState(initial?.memo ?? "");
+
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
-  // 選択中の小学校に座標があれば、その位置を地図の中心にする
+  const isNew = placeChoice === NEW_PLACE;
+  const selectedLocation = useMemo(
+    () => locations.find((l) => l.id === placeChoice) ?? null,
+    [locations, placeChoice]
+  );
+
   const mapCenter = useMemo(() => {
     const s = schools.find((x) => x.id === schoolId);
     if (s?.lat != null && s?.lng != null) return { lat: s.lat, lng: s.lng };
-    if (initial?.lat != null && initial?.lng != null) {
-      return { lat: initial.lat, lng: initial.lng };
-    }
+    if (latLng) return latLng;
     return DEFAULT_CENTER;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [schoolId, schools]);
@@ -76,85 +91,138 @@ export function VisitForm({
     e.preventDefault();
     setError("");
 
-    if (!schoolId) {
-      setError("小学校を選択してください");
-      return;
-    }
     if (!date) {
       setError("配布日を入力してください");
       return;
     }
 
-    const input: VisitInput = {
-      schoolId,
-      spot,
-      date,
-      startTime: startTime || null,
-      endTime: endTime || null,
-      count: count.trim() === "" ? null : Number(count),
-      rating,
-      memo: memo.trim() || null,
-      lat: latLng?.lat ?? null,
-      lng: latLng?.lng ?? null,
-    };
+    let input: VisitInput;
+    if (isNew) {
+      if (!schoolId) {
+        setError("小学校を選択してください");
+        return;
+      }
+      input = {
+        locationId: null,
+        schoolId,
+        spot,
+        lat: latLng?.lat ?? null,
+        lng: latLng?.lng ?? null,
+        date,
+        startTime: startTime || null,
+        endTime: endTime || null,
+        count: count.trim() === "" ? null : Number(count),
+        rating,
+        memo: memo.trim() || null,
+      };
+    } else if (selectedLocation) {
+      input = {
+        locationId: selectedLocation.id,
+        schoolId: selectedLocation.school_id ?? "",
+        spot: selectedLocation.spot ?? "",
+        lat: null,
+        lng: null,
+        date,
+        startTime: startTime || null,
+        endTime: endTime || null,
+        count: count.trim() === "" ? null : Number(count),
+        rating,
+        memo: memo.trim() || null,
+      };
+    } else {
+      setError("配布場所を選択してください");
+      return;
+    }
 
     startTransition(async () => {
       const result = await onSubmit(input);
-      if (result.ok) {
-        onSuccess?.();
-      } else {
-        setError(result.error);
-      }
+      if (result.ok) onSuccess?.();
+      else setError(result.error);
     });
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      {/* 配布場所の選択 */}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="vf-school">対象小学校</Label>
-        <Select value={schoolId} onValueChange={setSchoolId}>
-          <SelectTrigger id="vf-school">
-            <SelectValue placeholder="小学校を選択" />
+        <Label htmlFor="vf-place">配布場所</Label>
+        <Select value={placeChoice} onValueChange={setPlaceChoice}>
+          <SelectTrigger id="vf-place">
+            <SelectValue placeholder="配布場所を選択" />
           </SelectTrigger>
           <SelectContent>
-            {schools.length === 0 ? (
-              <div className="px-3 py-2 text-sm text-muted-foreground">
-                「小学校」タブで先に登録してください
-              </div>
-            ) : (
-              schools.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}
-                </SelectItem>
-              ))
-            )}
+            {locations.map((l) => (
+              <SelectItem key={l.id} value={l.id}>
+                {(l.school?.name ?? "小学校未設定") + (l.spot?.trim() ? ` / ${l.spot}` : "")}
+              </SelectItem>
+            ))}
+            <SelectItem value={NEW_PLACE}>＋ 新しい配布場所を作る</SelectItem>
           </SelectContent>
         </Select>
+        {selectedLocation && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            {selectedLocation.lat != null && selectedLocation.lng != null ? (
+              <MapPin className="size-3.5 text-primary" />
+            ) : (
+              <MapPinOff className="size-3.5" />
+            )}
+            {selectedLocation.lat != null && selectedLocation.lng != null
+              ? "地図に登録済みの場所です"
+              : "この場所はまだ地図に配置されていません"}
+          </p>
+        )}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="vf-spot">立ち位置</Label>
-        <Input
-          id="vf-spot"
-          placeholder="例: 正門西側、丁字路右側"
-          value={spot}
-          onChange={(e) => setSpot(e.target.value)}
-        />
-      </div>
+      {/* 新規作成時のみ: 小学校・立ち位置・地図 */}
+      {isNew && (
+        <>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="vf-school">対象小学校</Label>
+            <Select value={schoolId} onValueChange={setSchoolId}>
+              <SelectTrigger id="vf-school">
+                <SelectValue placeholder="小学校を選択" />
+              </SelectTrigger>
+              <SelectContent>
+                {schools.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    「小学校」タブで先に登録してください
+                  </div>
+                ) : (
+                  schools.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
 
-      <div className="flex flex-col gap-2">
-        <Label>地図上の位置</Label>
-        <LocationPicker
-          value={latLng}
-          center={mapCenter}
-          onChange={(lat, lng) => setLatLng({ lat, lng })}
-        />
-        <p className="text-xs text-muted-foreground">
-          {latLng
-            ? `緯度 ${latLng.lat.toFixed(5)} / 経度 ${latLng.lng.toFixed(5)}（タップまたはピンをドラッグで調整）`
-            : "地図をタップして配布場所の位置を指定（小学校を選ぶとその付近が表示されます）"}
-        </p>
-      </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="vf-spot">立ち位置</Label>
+            <Input
+              id="vf-spot"
+              placeholder="例: 正門西側、丁字路右側"
+              value={spot}
+              onChange={(e) => setSpot(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label>地図上の位置</Label>
+            <LocationPicker
+              value={latLng}
+              center={mapCenter}
+              onChange={(lat, lng) => setLatLng({ lat, lng })}
+            />
+            <p className="text-xs text-muted-foreground">
+              {latLng
+                ? `緯度 ${latLng.lat.toFixed(5)} / 経度 ${latLng.lng.toFixed(5)}（現在地・タップ・ドラッグで調整）`
+                : "現在地ボタンや地図タップで位置を指定（任意。後から地図で配置も可）"}
+            </p>
+          </div>
+        </>
+      )}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="vf-date">配布日</Label>
