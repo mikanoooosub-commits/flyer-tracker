@@ -45,6 +45,21 @@ function makeNoteIcon(color: string) {
   });
 }
 
+export type SchoolPin = { id: string; name: string; url: string | null; lat: number; lng: number };
+
+// 小学校の青いピン（全校共通アイコンなので使い回す）
+const SCHOOL_ICON = L.divIcon({
+  html: `<div style="width:40px;height:44px;padding:6px;box-sizing:border-box;display:flex;justify-content:center;">
+    <svg width="28" height="36" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 25 15 25s15-15 15-25C30 6.7 23.3 0 15 0z" fill="#2563eb" stroke="white" stroke-width="2"/>
+      <circle cx="15" cy="15" r="5.5" fill="white"/>
+    </svg>
+  </div>`,
+  className: "flyer-school",
+  iconSize: [40, 44],
+  iconAnchor: [20, 44],
+});
+
 /** 現在地マーカー。heading があれば向きの扇形（コーン）を表示。 */
 function makeCurrentIcon(heading: number | null) {
   const fan =
@@ -186,6 +201,7 @@ type Props = {
   ratings: Record<string, Rating | null>;
   history: Record<string, PinHistoryItem[]>;
   notes: MapNote[];
+  schoolPins: SchoolPin[];
   center: [number, number];
   currentPosition: { lat: number; lng: number } | null;
   heading: number | null;
@@ -200,6 +216,7 @@ export default function FlyerMap({
   ratings,
   history,
   notes,
+  schoolPins,
   center,
   currentPosition,
   heading,
@@ -216,6 +233,25 @@ export default function FlyerMap({
       />
       <ClickHandler onMapClick={onMapClick} />
       <PanTo target={panTarget} />
+      {schoolPins.map((s) => (
+        <Marker key={`school-${s.id}`} position={[s.lat, s.lng]} icon={SCHOOL_ICON} zIndexOffset={-100}>
+          <Tooltip direction="top" offset={[0, -40]} className="flyer-label">
+            {s.name}
+          </Tooltip>
+          <Popup>
+            <div className="flyer-school-popup">
+              <p className="font-bold">{s.name}</p>
+              {s.url ? (
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  ホームページを開く ↗
+                </a>
+              ) : (
+                <span className="flyer-school-nolink">URL未登録</span>
+              )}
+            </div>
+          </Popup>
+        </Marker>
+      ))}
       {currentPosition && (
         <Marker
           position={[currentPosition.lat, currentPosition.lng]}

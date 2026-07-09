@@ -272,16 +272,26 @@ export async function deleteMapNoteAction(id: string): Promise<ActionResult> {
 
 // ── 小学校マスタ（Phase 5 で利用） ──────────────────────────────────────────
 
+/** URLを正規化（空なら null、スキーム無しなら https:// を付与） */
+function normalizeUrl(url: string): string | null {
+  const t = url.trim();
+  if (!t) return null;
+  return /^https?:\/\//i.test(t) ? t : `https://${t}`;
+}
+
 export async function addSchoolAction(
   name: string,
   lat: number | null = null,
-  lng: number | null = null
+  lng: number | null = null,
+  url: string = ""
 ): Promise<ActionResult> {
   try {
     const trimmed = name.trim();
     if (!trimmed) return { ok: false, error: "小学校名を入力してください" };
     const supabase = await createClient();
-    const { error } = await supabase.from("schools").insert({ name: trimmed, lat, lng });
+    const { error } = await supabase
+      .from("schools")
+      .insert({ name: trimmed, lat, lng, url: normalizeUrl(url) });
     if (error) throw error;
 
     revalidatePath("/schools");
@@ -293,17 +303,24 @@ export async function addSchoolAction(
   }
 }
 
-export async function updateSchoolCoordsAction(
+/** 小学校の名前・URL・座標を更新（座標は指定時のみ） */
+export async function updateSchoolAction(
   schoolId: string,
-  lat: number,
-  lng: number
+  name: string,
+  url: string,
+  lat?: number | null,
+  lng?: number | null
 ): Promise<ActionResult> {
   try {
+    const trimmed = name.trim();
+    if (!trimmed) return { ok: false, error: "小学校名を入力してください" };
     const supabase = await createClient();
-    const { error } = await supabase
-      .from("schools")
-      .update({ lat, lng })
-      .eq("id", schoolId);
+    const patch: Record<string, unknown> = { name: trimmed, url: normalizeUrl(url) };
+    if (lat != null && lng != null) {
+      patch.lat = lat;
+      patch.lng = lng;
+    }
+    const { error } = await supabase.from("schools").update(patch).eq("id", schoolId);
     if (error) throw error;
 
     revalidatePath("/schools");
@@ -311,7 +328,7 @@ export async function updateSchoolCoordsAction(
     revalidatePath("/list");
     return { ok: true };
   } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : "座標の更新に失敗しました" };
+    return { ok: false, error: e instanceof Error ? e.message : "更新に失敗しました" };
   }
 }
 

@@ -7,9 +7,9 @@
 -- ============================================================================
 
 with s as (
-  insert into public.schools (name, lat, lng) values
-    ('デモ第一小学校', 35.7512, 139.7090),
-    ('デモ第二小学校', 35.7462, 139.7162)
+  insert into public.schools (name, lat, lng, url) values
+    ('デモ第一小学校', 35.7512, 139.7090, 'https://example.com/'),
+    ('デモ第二小学校', 35.7462, 139.7162, null)
   returning id, name
 ),
 l as (

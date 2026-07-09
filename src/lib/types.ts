@@ -16,6 +16,7 @@ export const RATING_ORDER: Rating[] = ["good", "normal", "bad"];
 export type School = {
   id: string;
   name: string;
+  url: string | null;
   lat: number | null;
   lng: number | null;
   created_at: string;

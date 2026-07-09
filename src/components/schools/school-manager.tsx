@@ -2,10 +2,20 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Trash2, School as SchoolIcon, MapPin, MapPinOff, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  School as SchoolIcon,
+  MapPin,
+  MapPinOff,
+  ChevronDown,
+  ExternalLink,
+  Pencil,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
@@ -14,11 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { LocationPicker } from "@/components/map/location-picker";
-import {
-  addSchoolAction,
-  deleteSchoolAction,
-  updateSchoolCoordsAction,
-} from "@/lib/data/actions";
+import { addSchoolAction, deleteSchoolAction, updateSchoolAction } from "@/lib/data/actions";
 import type { School } from "@/lib/types";
 
 const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
@@ -26,11 +32,12 @@ const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
 export function SchoolManager({ schools }: { schools: School[] }) {
   const router = useRouter();
   const [name, setName] = useState("");
+  const [url, setUrl] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
-  const [coordsTarget, setCoordsTarget] = useState<School | null>(null);
+  const [editTarget, setEditTarget] = useState<School | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<School | null>(null);
 
   function handleAdd(e: React.FormEvent) {
@@ -38,9 +45,10 @@ export function SchoolManager({ schools }: { schools: School[] }) {
     setError("");
     if (!name.trim()) return;
     startTransition(async () => {
-      const result = await addSchoolAction(name, pos?.lat ?? null, pos?.lng ?? null);
+      const result = await addSchoolAction(name, pos?.lat ?? null, pos?.lng ?? null, url);
       if (result.ok) {
         setName("");
+        setUrl("");
         setPos(null);
         setShowPicker(false);
         router.refresh();
@@ -54,13 +62,9 @@ export function SchoolManager({ schools }: { schools: School[] }) {
     setError("");
     startTransition(async () => {
       const result = await deleteSchoolAction(id);
-      if (result.ok) {
-        setDeleteTarget(null);
-        router.refresh();
-      } else {
-        setDeleteTarget(null);
-        setError(result.error);
-      }
+      setDeleteTarget(null);
+      if (result.ok) router.refresh();
+      else setError(result.error);
     });
   }
 
@@ -69,21 +73,36 @@ export function SchoolManager({ schools }: { schools: School[] }) {
       <Card>
         <CardContent className="flex flex-col gap-3">
           <form onSubmit={handleAdd} className="flex flex-col gap-3">
-            <div className="flex items-end gap-2">
-              <div className="flex flex-1 flex-col gap-1.5">
-                <label htmlFor="school-name" className="text-sm font-bold">
-                  小学校を追加
-                </label>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="school-name" className="text-sm font-bold">
+                小学校を追加
+              </label>
+              <div className="flex items-end gap-2">
                 <Input
                   id="school-name"
                   placeholder="例: 板橋第一小"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  className="flex-1"
                 />
+                <Button type="submit" size="icon" disabled={pending} aria-label="追加">
+                  <Plus className="size-5" />
+                </Button>
               </div>
-              <Button type="submit" size="icon" disabled={pending} aria-label="追加">
-                <Plus className="size-5" />
-              </Button>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="school-url" className="text-xs">
+                ホームページURL（任意）
+              </Label>
+              <Input
+                id="school-url"
+                type="url"
+                inputMode="url"
+                placeholder="https://example.ed.jp/"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+              />
             </div>
 
             <button
@@ -131,28 +150,49 @@ export function SchoolManager({ schools }: { schools: School[] }) {
             return (
               <li
                 key={s.id}
-                className="flex items-center gap-3 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-sm"
+                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-sm"
               >
                 <SchoolIcon className="size-4 shrink-0 text-primary" />
-                <span className="flex-1 font-medium">{s.name}</span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate font-medium">{s.name}</span>
+                  {s.url ? (
+                    <a
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-xs text-primary hover:underline"
+                    >
+                      <ExternalLink className="size-3" />
+                      ホームページを開く
+                    </a>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">URL未登録</span>
+                  )}
+                </div>
+                <span
+                  className={`shrink-0 ${hasCoords ? "text-primary" : "text-muted-foreground"}`}
+                  title={hasCoords ? "位置設定済み" : "位置未設定"}
+                >
+                  {hasCoords ? <MapPin className="size-4" /> : <MapPinOff className="size-4" />}
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`gap-1.5 ${hasCoords ? "text-primary" : "text-muted-foreground"}`}
-                  onClick={() => setCoordsTarget(s)}
+                  className="shrink-0 gap-1.5"
+                  onClick={() => setEditTarget(s)}
                 >
-                  {hasCoords ? <MapPin className="size-4" /> : <MapPinOff className="size-4" />}
-                  {hasCoords ? "位置" : "位置未設定"}
+                  <Pencil className="size-4" />
+                  編集
                 </Button>
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="gap-1.5 text-destructive"
+                  size="icon"
+                  className="shrink-0 text-destructive"
+                  aria-label="削除"
                   disabled={pending}
                   onClick={() => setDeleteTarget(s)}
                 >
                   <Trash2 className="size-4" />
-                  削除
                 </Button>
               </li>
             );
@@ -161,16 +201,16 @@ export function SchoolManager({ schools }: { schools: School[] }) {
       )}
 
       <p className="px-1 text-xs text-muted-foreground">
-        ※ 座標を設定しておくと、配布実績の登録時にその小学校付近の地図が開きます。
+        ※ 座標を設定すると、地図に青いピンで表示され、配布実績の登録時もその付近が中心表示されます。
         <br />
-        ※ 配布場所が紐づいている小学校は削除できません。
+        ※ URLを登録すると、この一覧や地図の青ピンからホームページを別タブで開けます。
       </p>
 
-      <SchoolCoordsDialog
-        school={coordsTarget}
-        onClose={() => setCoordsTarget(null)}
+      <SchoolEditDialog
+        school={editTarget}
+        onClose={() => setEditTarget(null)}
         onSaved={() => {
-          setCoordsTarget(null);
+          setEditTarget(null);
           router.refresh();
         }}
       />
@@ -207,7 +247,7 @@ export function SchoolManager({ schools }: { schools: School[] }) {
   );
 }
 
-function SchoolCoordsDialog({
+function SchoolEditDialog({
   school,
   onClose,
   onSaved,
@@ -220,15 +260,15 @@ function SchoolCoordsDialog({
     <Dialog open={school !== null} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{school?.name} の位置を設定</DialogTitle>
+          <DialogTitle>小学校の編集</DialogTitle>
         </DialogHeader>
-        {school && <SchoolCoordsBody school={school} onSaved={onSaved} onClose={onClose} />}
+        {school && <SchoolEditBody school={school} onSaved={onSaved} onClose={onClose} />}
       </DialogContent>
     </Dialog>
   );
 }
 
-function SchoolCoordsBody({
+function SchoolEditBody({
   school,
   onSaved,
   onClose,
@@ -241,28 +281,56 @@ function SchoolCoordsBody({
     school.lat != null && school.lng != null
       ? { lat: school.lat, lng: school.lng }
       : DEFAULT_CENTER;
+  const [name, setName] = useState(school.name);
+  const [url, setUrl] = useState(school.url ?? "");
   const [pos, setPos] = useState(initial);
+  const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
 
   function handleSave() {
+    setError("");
+    if (!name.trim()) {
+      setError("小学校名を入力してください");
+      return;
+    }
     startTransition(async () => {
-      await updateSchoolCoordsAction(school.id, pos.lat, pos.lng);
-      onSaved();
+      const result = await updateSchoolAction(school.id, name, url, pos.lat, pos.lng);
+      if (result.ok) onSaved();
+      else setError(result.error);
     });
   }
 
   return (
     <>
-      <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-      <p className="text-xs text-muted-foreground">
-        緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（タップまたはドラッグで指定）
-      </p>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="edit-name">小学校名</Label>
+        <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="edit-url">ホームページURL（任意）</Label>
+        <Input
+          id="edit-url"
+          type="url"
+          inputMode="url"
+          placeholder="https://example.ed.jp/"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+        />
+      </div>
+      <div className="flex flex-col gap-2">
+        <Label>位置（現在地・検索・タップ・ドラッグで指定）</Label>
+        <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
+        <p className="text-xs text-muted-foreground">
+          緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
+        </p>
+      </div>
+      {error && <p className="text-sm text-destructive">{error}</p>}
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={onClose} disabled={pending}>
           キャンセル
         </Button>
         <Button className="flex-1" onClick={handleSave} disabled={pending}>
-          {pending ? "保存中…" : "この位置で保存"}
+          {pending ? "保存中…" : "保存する"}
         </Button>
       </div>
     </>

@@ -233,6 +233,30 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border: none;
 }
 
+/* 小学校の青ピン */
+.flyer-school {
+  background: transparent;
+  border: none;
+}
+.flyer-school-popup {
+  min-width: 140px;
+  font-size: 13px;
+  color: #111;
+}
+.flyer-school-popup a {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.flyer-school-popup a:hover {
+  text-decoration: underline;
+}
+.flyer-school-nolink {
+  color: #6b7280;
+}
+
 /* マップメモのホバー吹き出し */
 .flyer-note {
   background: transparent;

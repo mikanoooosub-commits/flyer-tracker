@@ -14,11 +14,13 @@ create table if not exists public.schools (
   name       text not null,
   lat        double precision,  -- 小学校のおおよその座標（任意）
   lng        double precision,
+  url        text,              -- 小学校ホームページのURL（任意）
   created_at timestamptz not null default now()
 );
--- 既存DB向け: 後から座標カラムを追加（何度実行してもよい）
+-- 既存DB向け: 後からカラムを追加（何度実行してもよい）
 alter table public.schools add column if not exists lat double precision;
 alter table public.schools add column if not exists lng double precision;
+alter table public.schools add column if not exists url text;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- map_notes（マップメモ）

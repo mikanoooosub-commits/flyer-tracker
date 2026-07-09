@@ -106,6 +106,20 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
     return map;
   }, [visits]);
 
+  const schoolPins = useMemo(
+    () =>
+      schools
+        .filter((s) => s.lat != null && s.lng != null)
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          url: s.url,
+          lat: s.lat as number,
+          lng: s.lng as number,
+        })),
+    [schools]
+  );
+
   const center = useMemo<[number, number]>(() => {
     if (placedLocations.length === 0) return DEFAULT_CENTER;
     const lat =
@@ -129,6 +143,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         <LegendDot color="var(--rating-normal)" label="普通" />
         <LegendDot color="var(--rating-bad)" label="非推奨" />
         <LegendDot color="#9ca3af" label="履歴なし" />
+        <LegendDot color="#2563eb" label="小学校" />
       </div>
 
       {/* 現在地トラッキング */}
@@ -173,6 +188,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
           ratings={ratings}
           history={history}
           notes={notes}
+          schoolPins={schoolPins}
           center={center}
           currentPosition={currentPos}
           heading={track.heading}
