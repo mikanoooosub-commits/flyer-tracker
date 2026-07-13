@@ -29,6 +29,19 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body className={`${mplusRounded.variable} font-sans antialiased`}>
+        {/* 🚧 リリース訓練用の一時バナー（切り戻し訓練後に revert 予定） */}
+        <div
+          style={{
+            background: "#f59e0b",
+            color: "#111",
+            fontWeight: 700,
+            fontSize: 13,
+            textAlign: "center",
+            padding: "6px 8px",
+          }}
+        >
+          🚧 リリース訓練 v-drill — この後ロールバックします
+        </div>
         {children}
       </body>
     </html>
