@@ -10,8 +10,8 @@ const mplusRounded = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "チラシ配布実績管理",
-  description: "地図上のピンでチラシ配布実績を記録・管理するアプリ",
+  title: "チラトラ",
+  description: "地図上のピンでチラシ配布実績を記録・共有するアプリ「チラトラ」",
 };
 
 export const viewport: Viewport = {

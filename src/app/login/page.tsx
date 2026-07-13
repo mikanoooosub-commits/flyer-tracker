@@ -101,8 +101,8 @@ export default function LoginPage() {
           <MapPin className="size-7" />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold">チラシ配布実績管理</h1>
-          <p className="text-sm text-muted-foreground">ログインして記録を始めましょう</p>
+          <h1 className="text-xl font-extrabold">チラトラ</h1>
+          <p className="text-sm text-muted-foreground">チラシ配布実績の記録・共有アプリ</p>
         </div>
       </div>
 
