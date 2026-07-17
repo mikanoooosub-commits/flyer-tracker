@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { MapPin, Mail, CheckCircle2, PlayCircle, KeyRound } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapPin, Mail, CheckCircle2, FlaskConical, KeyRound } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
+import { disableDemoMode, enableDemoMode, readDemoMode } from "@/lib/demo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === "1";
-const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "";
-const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "";
-
 export default function LoginPage() {
   const [mode, setMode] = useState<"password" | "magic">("password");
+
+  // デモ表示モード（DB の参照先を demo スキーマに切り替える）
+  const [useDemo, setUseDemo] = useState(false);
 
   // パスワードログイン
   const [email, setEmail] = useState("");
@@ -27,7 +27,19 @@ export default function LoginPage() {
   const [magicStatus, setMagicStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [magicMessage, setMagicMessage] = useState("");
 
-  const [demoLoading, setDemoLoading] = useState(false);
+  // 実際の cookie に初期状態を合わせる。
+  // マウント後に読むのは、サーバー描画と初期 state を一致させて hydration のズレを避けるため。
+  useEffect(() => {
+    setUseDemo(readDemoMode());
+  }, []);
+
+  function handleDemoToggle(checked: boolean) {
+    setUseDemo(checked);
+    // 押した時点で cookie に反映しておく。ログイン後のリダイレクト先を
+    // サーバーが描画する時点で、すでに参照スキーマが決まっている必要があるため。
+    if (checked) enableDemoMode();
+    else disableDemoMode();
+  }
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -79,21 +91,6 @@ export default function LoginPage() {
     }
   }
 
-  async function handleDemoLogin() {
-    setDemoLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email: DEMO_EMAIL,
-        password: DEMO_PASSWORD,
-      });
-      if (error) throw error;
-      window.location.href = "/";
-    } catch {
-      setDemoLoading(false);
-    }
-  }
-
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-6 py-10">
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
@@ -105,21 +102,6 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">チラシ配布実績の記録・共有アプリ</p>
         </div>
       </div>
-
-      {DEMO_MODE && (
-        <Card className="mb-4 w-full border-primary/40 bg-primary/5">
-          <CardContent className="flex flex-col gap-2 py-4">
-            <p className="text-sm font-bold">これはデモ環境です</p>
-            <p className="text-xs text-muted-foreground">
-              下のボタンで、ダミーデータの入ったデモにそのままログインできます。
-            </p>
-            <Button size="lg" className="gap-2" onClick={handleDemoLogin} disabled={demoLoading}>
-              <PlayCircle className="size-5" />
-              {demoLoading ? "ログイン中…" : "デモとしてログイン"}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
 
       <Card className="w-full">
         <CardHeader>
@@ -224,6 +206,25 @@ export default function LoginPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* デモ表示モード: DB の参照先を demo スキーマに切り替える（本番データは表示されない） */}
+      <label className="mt-4 flex w-full cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3">
+        <input
+          type="checkbox"
+          checked={useDemo}
+          onChange={(e) => handleDemoToggle(e.target.checked)}
+          className="mt-0.5 size-4 shrink-0 accent-amber-500"
+        />
+        <span className="flex flex-col gap-0.5">
+          <span className="flex items-center gap-1.5 text-sm font-bold">
+            <FlaskConical className="size-4 text-amber-600" />
+            デモデータを参照する
+          </span>
+          <span className="text-xs text-muted-foreground">
+            架空のダミーデータに切り替えて表示します。本番データは表示されません。
+          </span>
+        </span>
+      </label>
     </div>
   );
 }

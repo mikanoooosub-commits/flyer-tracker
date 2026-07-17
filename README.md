@@ -101,6 +101,7 @@ flowchart LR
 
 - [設計書](./docs/設計書.md) — システム構成図・ER図・画面遷移図・認証シーケンス
 - [要件メモ](./REQUIREMENTS.md) — 機能要件
+- [コーディング規約](./docs/コーディング規約.md) — DB/クエリ/実装の共通ルール
 - [テスト仕様書](./docs/テスト仕様書.md) — 機能別テストケース
 - [変更管理表](./docs/変更管理表.md) ／ [バグ管理表](./docs/バグ管理表.md) — 変更履歴・不具合対応
 - [構想・ロードマップ](./docs/構想・ロードマップ.md) — 今後の拡張構想
@@ -138,16 +139,30 @@ npm run dev                  # http://localhost:3000
 4. Supabase の Auth リダイレクトURLに本番URL（`/auth/confirm`）を追加
 
 <details>
-<summary>デモ環境（ワンクリックログイン付き）の構築手順</summary>
+<summary>デモ表示モードの構築手順</summary>
 
-本番とは別の Supabase プロジェクト＋Vercel プロジェクトで、データを分離したデモ環境を用意できる。
+本番と同じプロジェクト内に `demo` スキーマを用意し、ログイン画面のチェックボックスで
+参照先を `public`（本番）/ `demo`（ダミーデータ）に切り替える方式。
+**別プロジェクト・別デプロイ・専用URLは不要**。
 
-1. Supabase でデモ用プロジェクトを作成し、`supabase/schema.sql` → `supabase/seed_demo.sql`（ダミーデータ）を実行
-2. Email+パスワード認証を有効化し、デモ用アカウントを作成（Auto Confirm）
-3. 同じリポジトリから Vercel で2つ目のプロジェクトを作成し、環境変数に加えて
-   `NEXT_PUBLIC_DEMO_MODE=1` / `NEXT_PUBLIC_DEMO_EMAIL` / `NEXT_PUBLIC_DEMO_PASSWORD` を設定
-4. デモのドメインを割り当て、Auth リダイレクトURLを登録
+1. Supabase の SQL Editor で `supabase/schema_demo.sql` を実行（demo スキーマ・RLS・トリガー・ビューを作成）
+2. 続けて `supabase/seed_demo.sql` を実行（架空のダミーデータを投入。冪等）
+3. **`demo` スキーマを Data API に公開する**（これをしないとアプリから参照できず 404）
+   `Settings` → `Integrations` → **`Data API`** → **`Settings` タブ** → **`Exposed schemas`** に `demo` を追加して保存
+   - 似た名前の **`Extra search path`** は別物（スキーマ名を省略したときの検索順序）。**こちらは変更不要**
+   - `Automatically expose new tables` は OFF のままでよい（`schema_demo.sql` が GRANT を明示している）
+4. ログイン画面の「デモデータを参照する」にチェックを入れてログイン
 
-`NEXT_PUBLIC_DEMO_MODE=1` の環境だけログイン画面に「デモとしてログイン」ボタンが表示される。
+##### 設計判断（なぜフラグ列ではなくスキーマ分離か）
+
+参照の切替はチェックボックス（＝クライアント由来）で行うため、**RLS では制御できない**
+（RLS は JWT＝「誰か」でしか出し分けられない）。同一テーブルに `is_demo` フラグで同居させると
+「絞り忘れ＝本番データが表示される」事故になるが、スキーマを分ければ demo を参照している限り
+本番の行は物理的に出てこない。切替点も `createClient()` の1か所に閉じるため改修が最小で済む。
+
+チェックボックスは**セキュリティ境界ではなく利便スイッチ**（デモは自分の端末で見せる前提）。
+本番データを守っているのは「demo スキーマに本番の行が存在しないこと」。
+
+> ⚠️ `public` にテーブル・カラムを追加したら、`demo` にも同じDDLを当てること（スキーマのドリフト防止）。
 
 </details>
