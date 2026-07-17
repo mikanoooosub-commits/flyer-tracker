@@ -80,7 +80,7 @@ export function SchoolManager({ schools }: { schools: School[] }) {
               <div className="flex items-end gap-2">
                 <Input
                   id="school-name"
-                  placeholder="例: 板橋第一小"
+                  placeholder="例: 〇〇小学校"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="flex-1"
