@@ -77,6 +77,8 @@ Leaflet + OpenStreetMap + Nominatim（無料・APIキー不要）/ Supabase（Au
 ## 進め方（チーム運用）
 機能追加は `work-orders/` の work-order 方式＋**VSDD** で進める。**仕様（S-n／境界ケース E-n）を先に書き、オーナー承認後に実装する。**
 - 役割: オーナー（仕様承認・最終受入）／PM（仕様化・WO起票・差し戻し振り分け・受入判定＝本体スレ。**コードは触らない**）／
-  実装（`work-orders/ROLE-implementer.md`、テスト先行）／批判役（`work-orders/ROLE-reviewer.md`、**毎回新スレ**＋`/code-review` 併用）。
+  実装＝WOスレ（WOごとに1本。`work-orders/ROLE-implementer.md`、テスト先行）／
+  批判役＝**サブエージェント**（`work-orders/ROLE-reviewer.md`。仕様レビューは PMスレ、コードレビューは WOスレが固定文で起動）。
+  スレは「PMスレ＋作業中の WO の数」だけにし、レビューの中身はファイルに残す。
 - 規模で「フル／軽量」コースを使い分ける（`work-orders/README.md`）。
 - 流れと作法は `work-orders/README.md`。新しい作業は `work-orders/WO-TEMPLATE.md` をコピーして起票する。
