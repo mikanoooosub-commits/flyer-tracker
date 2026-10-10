@@ -114,6 +114,7 @@ flowchart LR
 npm install
 cp .env.example .env.local   # Supabase の URL / anon key を記入
 npm run dev                  # http://localhost:3000
+npm test                     # 自動テスト（Vitest。1回実行して終了）
 ```
 
 ### 環境変数（`.env.local`）
