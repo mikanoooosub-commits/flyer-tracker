@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WO-003 振り返り</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 作業指示書（work order）の控えのような縦一列の報告書。左に工程の罫線、数字は等幅で揃える */
+:root{
+  --bg:#f5f7f8; --paper:#ffffff; --fg:#1d2730; --muted:#5b6872; --line:#d9e0e4;
+  --accent:#1f5f8b; --accent-soft:#e3eef6;
+  --hole:#1f5f8b; --biz:#b86e12; --word:#8a97a1; --pivot:#b86e12; --pivot-soft:#fbf0df;
+  --ok:#2e7d5b; --ok-soft:#e3f2ea;
+  --f-display:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181d; --paper:#1a2228; --fg:#e4eaee; --muted:#9aa8b2; --line:#2c3740;
+  --accent:#6fb0dc; --accent-soft:#1d3444; --hole:#6fb0dc; --biz:#e0a24f; --word:#7d8b95;
+  --pivot:#e0a24f; --pivot-soft:#3a2c17; --ok:#6cc39a; --ok-soft:#183427; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181d; --paper:#1a2228; --fg:#e4eaee; --muted:#9aa8b2; --line:#2c3740;
+  --accent:#6fb0dc; --accent-soft:#1d3444; --hole:#6fb0dc; --biz:#e0a24f; --word:#7d8b95;
+  --pivot:#e0a24f; --pivot-soft:#3a2c17; --ok:#6cc39a; --ok-soft:#183427; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.75;margin:0}
+.wrap{max-width:920px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+header.top{display:grid;gap:6px;margin-bottom:28px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(26px,4vw,34px);line-height:1.3;margin:0;text-wrap:balance}
+.lead{color:var(--muted);max-width:65ch;margin:0}
+h2{font-family:var(--f-display);font-weight:700;font-size:20px;margin:0 0 14px;text-wrap:balance;display:flex;gap:10px;align-items:baseline}
+h2 .no{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:500}
+h3{font-size:15px;margin:18px 0 8px;font-weight:700}
+section{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:22px 20px;margin-bottom:18px}
+p{margin:0 0 10px;max-width:68ch}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:6px}
+.kpi{border:1px solid var(--line);border-radius:5px;padding:12px 14px;display:grid;gap:2px}
+.kpi b{font-family:var(--f-mono);font-size:24px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.2}
+.kpi span{font-size:12.5px;color:var(--muted);line-height:1.5}
+.kpi.ok b{color:var(--ok)}
+.tablewrap{overflow-x:auto;margin:6px 0 4px}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:560px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.03em;white-space:nowrap}
+td.num,th.num{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mono{font-family:var(--f-mono);font-size:12.5px}
+/* timeline */
+.tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--line);display:grid;gap:14px}
+.tl li{position:relative;padding-left:18px}
+.tl li::before{content:"";position:absolute;left:-7px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--accent)}
+.tl li.pivot::before{border-color:var(--pivot);background:var(--pivot)}
+.tl li.gate::before{border-color:var(--ok);background:var(--ok)}
+.tl .when{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.tl .what{font-weight:700}
+.tl .det{color:var(--muted);font-size:13.5px}
+.tag{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:999px;border:1px solid currentColor;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.tag.pv{color:var(--pivot)} .tag.gt{color:var(--ok)} .tag.ac{color:var(--accent)}
+/* bars */
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12.5px;color:var(--muted);margin:4px 0 12px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(150px,210px) 1fr 36px;gap:10px;align-items:center;font-size:13px}
+.bar .lbl{color:var(--fg);min-width:0}
+.bar .lbl small{color:var(--muted)}
+.track{display:flex;height:16px;background:var(--bg);border-radius:3px;overflow:hidden}
+.track span{display:block;height:100%}
+.s-hole{background:var(--hole)} .s-biz{background:var(--biz)} .s-word{background:var(--word)}
+.bar .n{font-family:var(--f-mono);text-align:right;font-variant-numeric:tabular-nums}
+.grp{font-size:12px;color:var(--muted);margin:10px 0 2px;letter-spacing:.03em}
+.grp.dis{color:var(--pivot)}
+@media (max-width:520px){.bar{grid-template-columns:1fr 32px}.bar .lbl{grid-column:1/-1}}
+.callout{border-left:3px solid var(--pivot);background:var(--pivot-soft);padding:10px 14px;border-radius:0 4px 4px 0;margin:12px 0;font-size:14px}
+.callout.ok{border-color:var(--ok);background:var(--ok-soft)}
+ul.tight{margin:4px 0 8px;padding-left:1.2em} ul.tight li{margin:2px 0}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.cols>div{min-width:0}
+.sugg{display:grid;gap:10px;counter-reset:s}
+.sugg>div{border:1px solid var(--line);border-radius:5px;padding:12px 14px}
+.sugg b{display:block;margin-bottom:2px}
+.sugg .eff{font-size:12.5px;color:var(--muted)}
+.src{font-size:12px;color:var(--muted);margin-top:10px}
+footer{font-size:12px;color:var(--muted);text-align:center;margin-top:24px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow">チラトラ / work-orders / 振り返り</div>
+  <h1>WO-003 クールダウン表示 振り返り</h1>
+  <p class="lead">最初に VSDD のフルコースで回した機能の記録。仕様化（2026-10-10）から本番確認（2026-10-12）までの流れ、オーナーとのやり取り、品質の数字、変更したファイルをまとめ、次の WO を速く回すための材料にする。</p>
+</header>
+
+<section>
+  <h2><span class="no">01</span>結果のまとめ</h2>
+  <p>小学校マスタで、立ち位置ごとに「前回配布日・クールダウン中／配布可／配布実績なし／非推奨（対象外）・解禁日」を表示する機能を受入し、本番に反映した。オーナーが本番画面で確認済み。</p>
+  <div class="kpis">
+    <div class="kpi ok"><b>0</b><span>本番で見つかった不具合（オーナー確認）</span></div>
+    <div class="kpi ok"><b>1</b><span>実装後に出た仕様の穴（低。許容と裁定）</span></div>
+    <div class="kpi"><b>9<small style="font-size:14px">＋1</small></b><span>仕様レビューの回数（＋途中で止めた1回）</span></div>
+    <div class="kpi"><b>67</b><span>仕様レビューの指摘の合計</span></div>
+    <div class="kpi"><b>23</b><span>オーナーが裁定した論点（WO-003 14・WO-002 9）</span></div>
+    <div class="kpi"><b>52</b><span>追加した自動テスト（実装前に全部失敗＝Red Gate を記録）</span></div>
+    <div class="kpi"><b>2</b><span>コードレビューの回数（上限3回の手前で収束）</span></div>
+    <div class="kpi"><b>約1時間45分</b><span>仕様承認から受入まで（14:02 → 15:46）</span></div>
+  </div>
+  <div class="callout ok">一番効いたのは関所1（仕様の承認）の手前。数える単位が「小学校 → まとまり → 立ち位置」と2回変わったが、実装は1行も始めていなかったので、コードの手戻りはゼロだった。</div>
+</section>
+
+<section>
+  <h2><span class="no">02</span>実際の流れ</h2>
+  <ol class="tl">
+    <li><div class="when">10-09 22:19〜22:49</div><div class="what">プロジェクト整備と VSDD の導入</div><div class="det">CLAUDE.md・work-orders を整え、改修は VSDD で進めると決定。WO-001（Vitest 導入）を起票。</div></li>
+    <li class="gate"><div class="when">10-10 13:52</div><div class="what">WO-001 受入、運用の見直し <span class="tag gt">関所2</span></div><div class="det">批判役をサブエージェントにしてスレを「PM＋WOごと1本」に集約。仕様レビューの3分類と上程、中継文、スクショ確認を規定に追加。</div></li>
+    <li><div class="when">10-10</div><div class="what">クールダウン表示を起票（当初は WO-002）、論点 Q-1〜Q-6</div><div class="det">単位＝小学校ごと、しきい値 90日、設定画面（後で WO を分ける）、表示先は小学校マスタのみ、解禁日＋経過日数、と裁定。</div></li>
+    <li><div class="when">10-11</div><div class="what">仕様レビュー 3回（小学校ごと）→ 上程</div><div class="det">指摘 11 → 9 → 4。業務判断（配布数0の扱い、デモに残すか、デモ実績の評価）を都度裁定。3回で収束せず、残り4件を一覧でオーナーへ。</div></li>
+    <li class="pivot"><div class="when">10-11</div><div class="what">前提の変更①：「西側と東側は別の子どもが通る」 <span class="tag pv">単位の変更</span></div><div class="det">小学校ごとでは配ってよい場所までクールダウンになると判明。段階導入に切り替え、まとまり登録を WO-002、表示を WO-003 に振り直し。</div></li>
+    <li><div class="when">10-11〜10-12</div><div class="what">WO-002（まとまり）仕様レビュー 3回 → 上程</div><div class="det">指摘 11 → 7 → 5。DB 関数・ロック順・スキーマ分離・実行権限など、DB 変更ならではの穴を詰めた。</div></li>
+    <li class="pivot"><div class="when">10-12</div><div class="what">前提の変更②：「配布ポイント」案 → 地図の具体例で撤回 <span class="tag pv">単位の変更</span></div><div class="det">オーナーの使用感から「配布ポイント」で組み直し（レビューは途中で停止）。続けて共有された地図の画像で「ほとんど1か所で独立」と分かり、さらに「非推奨は最新の評価で除外」と決まって、まとまりの仕組み自体が不要になった。WO-002 は再開条件付きで中止。</div></li>
+    <li><div class="when">10-12</div><div class="what">WO-003 を立ち位置ごとで書き直し、仕様レビュー 3回 → 上程</div><div class="det">指摘 8 → 7 → 5。旧仕様で詰めた内容（全件取得、日本時間、色、デモ準備）はそのまま引き継いだ。</div></li>
+    <li class="gate"><div class="when">10-12 14:02</div><div class="what">関所1：仕様承認 <span class="tag gt">関所1</span></div><div class="det">論点 Q-1〜Q-14、境界ケース E-1〜E-21。DB 変更なし。</div></li>
+    <li><div class="when">10-12</div><div class="what">WO スレで実装（Opus）</div><div class="det">テスト52本を先に書いて全部失敗を確認 → 実装 → デモ表示モードで手動確認・スクショ3枚 → コードレビュー2回（8件 → 2件）→ 中継文。</div></li>
+    <li class="gate"><div class="when">10-12 15:46</div><div class="what">関所2：受入、コミット <span class="tag gt">関所2</span></div><div class="det">PM が test / tsc / lint を再実行。判断点（デモのシード外の学校の削除、取りこぼしの許容、PC スクショ）を裁定。</div></li>
+    <li><div class="when">10-12 15:46〜16:38</div><div class="what">本番反映と本番確認</div><div class="det">push → Vercel デプロイ成功を PM が確認 → オーナーが本番画面で確認 OK。あわせて「DB の破壊的な操作」「本番反映」の運用ルールを追加。</div></li>
+  </ol>
+  <p class="src">出典: git log（コミット時刻）、work-orders/WO-002・WO-003・WO-003-report。仕様レビューの各回の時刻はコミットに残っていないため日付のみ。</p>
+</section>
+
+<section>
+  <h2><span class="no">03</span>オーナーとのやり取り</h2>
+  <p>PM スレからの質問は約14回（選択肢つきの質問。数は会話からの概数）。PM が選択肢と推奨を出し、オーナーが選ぶ形が中心だった。推奨と違う裁定は、単位（Q-1）・しきい値（90日）・設定画面・表示先・配布数0の非推奨判定（Q-11）など、現場の知識が要るものに集中した。</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>No.</th><th>論点</th><th>裁定</th><th>経緯</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Q-1</td><td>数える単位</td><td>立ち位置ごと</td><td>小学校ごと → まとまり → 立ち位置ごと（2回変更）</td></tr>
+      <tr><td class="mono">Q-2</td><td>しきい値</td><td>90日</td><td>PM の候補（7〜30日）の外。現場の感覚</td></tr>
+      <tr><td class="mono">Q-3/Q-6</td><td>日数の変え方・WO の分け方</td><td>設定画面（WO-004 に分ける）</td><td>PM 推奨は定数。分割は推奨どおり</td></tr>
+      <tr><td class="mono">Q-4/Q-12</td><td>表示先・見せ方</td><td>小学校マスタのみ、畳む＋非推奨も添える</td><td>自由回答から確認して確定</td></tr>
+      <tr><td class="mono">Q-5</td><td>クールダウン中に出す内容</td><td>解禁日＋経過日数</td><td>90日で「あと○日」が大きくなるため PM が提案</td></tr>
+      <tr><td class="mono">Q-7</td><td>配布数0・未記入</td><td>0は数えない・未記入は数える</td><td>批判役が指摘（業務判断）</td></tr>
+      <tr><td class="mono">Q-8/Q-9</td><td>スクショ用デモデータ</td><td>残す、直近と同じ評価</td><td>批判役が指摘（業務判断）</td></tr>
+      <tr><td class="mono">Q-10/Q-11</td><td>非推奨の扱い</td><td>最新の配布の評価が非推奨なら対象外（配布数0の評価も使う）</td><td>オーナーの運用説明（非推奨＝今後ここでは配らない）から確定</td></tr>
+      <tr><td class="mono">Q-13</td><td>乗り換え直後</td><td>許容（人が判断）</td><td>PM が中止前に洗い出したケース</td></tr>
+      <tr><td class="mono">Q-14</td><td>配布数0だけの文言</td><td>「配布実績なし」に統一</td><td>批判役が指摘（業務判断）</td></tr>
+    </tbody>
+  </table></div>
+  <h3>オーナーの手が必要だった作業</h3>
+  <ul class="tight">
+    <li>WO スレでの動作確認のためのログイン（接続先が本番 Supabase のため）と、デモデータ登録の許可</li>
+    <li>デモのシード外の学校の削除：PM が確認と予行演習をし、本番の確定（commit）はオーナーが実行（Claude はデータの完全削除を実行しないため）</li>
+    <li>本番画面での確認（デモ表示モードを外して）</li>
+    <li>現場の具体例の共有（地図の画像）。これで単位の議論が一気に収束した</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="no">04</span>品質</h2>
+  <h3>仕様レビューの指摘（回ごと・分類別）</h3>
+  <div class="legend"><span><i class="s-hole"></i>仕様の穴（技術で解ける）</span><span><i class="s-biz"></i>業務判断が要る</span><span><i class="s-word"></i>言い回し</span></div>
+  <div class="bars" aria-label="仕様レビューの指摘件数">
+    <div class="grp dis">旧 WO-003（小学校ごと）― 後に単位を変更</div>
+    <div class="bar"><div class="lbl">第1回</div><div class="track"><span class="s-hole" style="width:63.6%"></span><span class="s-biz" style="width:18.2%"></span><span class="s-word" style="width:18.2%"></span></div><div class="n">11</div></div>
+    <div class="bar"><div class="lbl">第2回</div><div class="track"><span class="s-hole" style="width:54.5%"></span><span class="s-biz" style="width:9.1%"></span><span class="s-word" style="width:18.2%"></span></div><div class="n">9</div></div>
+    <div class="bar"><div class="lbl">第3回 <small>→ 上程</small></div><div class="track"><span class="s-hole" style="width:36.4%"></span></div><div class="n">4</div></div>
+    <div class="grp dis">WO-002（まとまり）― 後に中止</div>
+    <div class="bar"><div class="lbl">第1回</div><div class="track"><span class="s-hole" style="width:72.7%"></span><span class="s-biz" style="width:18.2%"></span><span class="s-word" style="width:9.1%"></span></div><div class="n">11</div></div>
+    <div class="bar"><div class="lbl">第2回</div><div class="track"><span class="s-hole" style="width:45.5%"></span><span class="s-biz" style="width:9.1%"></span><span class="s-word" style="width:9.1%"></span></div><div class="n">7</div></div>
+    <div class="bar"><div class="lbl">第3回 <small>→ 上程</small></div><div class="track"><span class="s-hole" style="width:36.4%"></span><span class="s-word" style="width:9.1%"></span></div><div class="n">5</div></div>
+    <div class="grp">新 WO-003（立ち位置ごと）― 承認された仕様</div>
+    <div class="bar"><div class="lbl">第1回</div><div class="track"><span class="s-hole" style="width:45.5%"></span><span class="s-word" style="width:27.3%"></span></div><div class="n">8</div></div>
+    <div class="bar"><div class="lbl">第2回</div><div class="track"><span class="s-hole" style="width:54.5%"></span><span class="s-biz" style="width:9.1%"></span></div><div class="n">7</div></div>
+    <div class="bar"><div class="lbl">第3回 <small>→ 上程・承認</small></div><div class="track"><span class="s-hole" style="width:36.4%"></span><span class="s-word" style="width:9.1%"></span></div><div class="n">5</div></div>
+  </div>
+  <p class="src">棒の長さは 11件を最大とした同じ目盛り。合計 67件（仕様の穴 49・業務判断 7・言い回し 11）。3つの流れとも3回で言い回しだけには収束せず、上程ルールで止めた。</p>
+
+  <div class="cols" style="margin-top:14px">
+    <div>
+      <h3>コードレビュー（実装後）</h3>
+      <div class="tablewrap"><table style="min-width:0">
+        <thead><tr><th>回</th><th class="num">高</th><th class="num">中</th><th class="num">低</th><th>分類</th></tr></thead>
+        <tbody>
+          <tr><td>第1回</td><td class="num">0</td><td class="num">2</td><td class="num">6</td><td>テストの穴 4・実装の不備 3・仕様の穴 1</td></tr>
+          <tr><td>第2回</td><td class="num">0</td><td class="num">0</td><td class="num">2</td><td>テストの穴 2</td></tr>
+        </tbody>
+      </table></div>
+      <p style="font-size:13.5px">10件中6件が「テストの穴」。実装の振る舞いは正しいが、テストが分岐を突けていない／期待値が実装をなぞっている、といった指摘で、テストの質を上げる方向に効いた。</p>
+    </div>
+    <div>
+      <h3>確認の結果</h3>
+      <div class="tablewrap"><table style="min-width:0">
+        <tbody>
+          <tr><td>仕様項目・境界ケース・スクショ</td><td>S-1〜S-8・E-1〜E-21・SS-1〜2 すべて ✅</td></tr>
+          <tr><td>自動テスト</td><td class="mono">64 passed（新規 52）</td></tr>
+          <tr><td>タイムゾーン</td><td>UTC／ロサンゼルス／日本の3通りで全通過</td></tr>
+          <tr><td>手動テスト</td><td>テスト仕様書 No.E-01〜E-11 すべて OK</td></tr>
+          <tr><td>範囲外の変更・依存の変化・DB 変更</td><td>いずれも 0</td></tr>
+          <tr><td>PM の独立検証</td><td>test / tsc / lint を再実行して通過</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <h3>評価</h3>
+  <ul class="tight">
+    <li><b>良かった点</b>：境界ケースを仕様で詰めきったため、実装後の仕様の穴は低1件だけ。テスト先行（Red Gate）とレビューで、テストが本当に失敗を検出できることまで確かめた。本番の不具合は0。</li>
+    <li><b>重かった点</b>：仕様レビュー9回のうち6回（＋停止1回）は、後で単位が変わった仕様に対するものだった。前提（数える単位）を固める前にレビューを回し始めたのが主因。</li>
+    <li><b>残した課題</b>：取得途中の同時操作による取りこぼし（許容）、開閉ボタンのタップ領域（既知の軽微）、スクショ2枚にデモ帯が写っていない（mobile-1 と report で代替）。</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="no">05</span>変更したファイル</h2>
+  <h3>アプリ（コミット 0763efc）</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>ファイル</th><th>区分</th><th class="num">追加</th><th class="num">削除</th><th>中身</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">src/lib/cooldown.ts</td><td>新規</td><td class="num">217</td><td class="num">0</td><td>判定の純粋関数（今日・まとめ・状態・並び）と全件取得ループ、しきい値の定数</td></tr>
+      <tr><td class="mono">src/lib/cooldown.test.ts</td><td>新規</td><td class="num">424</td><td class="num">0</td><td>テスト52本（テスト名に S-n／E-n）</td></tr>
+      <tr><td class="mono">src/components/schools/school-spots.tsx</td><td>新規</td><td class="num">97</td><td class="num">0</td><td>立ち位置の欄（開閉・ラベル）</td></tr>
+      <tr><td class="mono">src/components/schools/school-manager.tsx</td><td>変更</td><td class="num">62</td><td class="num">43</td><td>既存の行を内側に移し、欄とエラー文を追加</td></tr>
+      <tr><td class="mono">src/app/(main)/schools/page.tsx</td><td>変更</td><td class="num">48</td><td class="num">3</td><td>サーバーで今日・まとめ・状態・並びを計算</td></tr>
+      <tr><td class="mono">src/lib/data/queries.ts</td><td>変更</td><td class="num">37</td><td class="num">0</td><td>実績・立ち位置の取得関数（列指定・全件取得）</td></tr>
+      <tr><td class="mono">src/lib/types.ts</td><td>変更</td><td class="num">10</td><td class="num">0</td><td>取得する列の型（既存型の Pick）</td></tr>
+      <tr><td class="mono">docs/テスト仕様書.md</td><td>変更</td><td class="num">11</td><td class="num">4</td><td>No.E-05〜E-11 と結果</td></tr>
+      <tr><td class="mono">docs/screenshots/WO-003/</td><td>新規</td><td class="num">3枚</td><td class="num">—</td><td>スマホ2・PC1（デモ表示モード）</td></tr>
+    </tbody>
+  </table></div>
+  <p style="font-size:13.5px">本体コード 471行に対してテスト 424行（およそ 0.9 倍）。DB・地図・一覧・依存パッケージは無変更。</p>
+  <h3>運用・文書（同じ期間に変えたもの）</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>ファイル</th><th>変えたこと</th><th>変更管理表</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">work-orders/README.md</td><td>サブエージェントの批判役、仕様検討（1a・論点・1b）、指摘の3分類と上程、中継文、画面の確認、DB の破壊的な操作の決まり、本番反映の手順、シーケンス図</td><td class="mono">No.35・36・40・41</td></tr>
+      <tr><td class="mono">ROLE-implementer.md / ROLE-reviewer.md</td><td>コードレビューの起動と修正ループ、中継文、スクショ、3分類、commit／push しない</td><td class="mono">No.35・36・41</td></tr>
+      <tr><td class="mono">WO-TEMPLATE.md</td><td>論点と裁定の表、画面変更の欄、SS-n</td><td class="mono">No.35・36</td></tr>
+      <tr><td class="mono">WO-002 / WO-003</td><td>まとまり登録（中止・再開条件つき）、クールダウン表示（承認・受入）</td><td class="mono">No.38・39</td></tr>
+      <tr><td class="mono">CLAUDE.md</td><td>現在地、削除待ちの欄、既知の軽微</td><td class="mono">各回</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="no">06</span>次を速くするための材料</h2>
+  <h3>数字で見た手間の内訳</h3>
+  <div class="tablewrap"><table>
+    <thead><tr><th>項目</th><th class="num">値</th><th>読み方</th></tr></thead>
+    <tbody>
+      <tr><td>仕様レビューのうち、後で捨てた前提に対する回数</td><td class="num">6／9（＋停止1）</td><td>単位が決まる前にレビューを始めたコスト。ただし技術的な詰め（全件取得・日本時間・色・デモ準備）は新仕様に引き継げた</td></tr>
+      <tr><td>3つの流れで繰り返し出た穴</td><td class="num">5種類</td><td>件数上限での取りこぼし、日本時間と実行環境のタイムゾーン、評価の色との衝突、デモデータでスクショが撮れない、375px での配置。いずれも2つ以上の流れで出た</td></tr>
+      <tr><td>業務判断が要る指摘</td><td class="num">7件</td><td>批判役が拾い、すべてオーナーが裁定。PM が書いた時点では見落としていた</td></tr>
+      <tr><td>上程ルール（3回超）の発動</td><td class="num">3回</td><td>3つの流れすべてで発動。毎回、残りは細かい詰めで、オーナーは PM 推奨どおり裁定した</td></tr>
+      <tr><td>仕様承認から受入まで</td><td class="num">約1時間45分</td><td>実装・手動確認・レビュー2回・判断点の裁定を含む。仕様が固まっていれば実装側は速い</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>次に試すこと</h3>
+  <div class="sugg">
+    <div><b>1. 1a の前に「現場の具体例」をもらう</b>今回は地図の画像1枚で単位の議論が収束した。数える単位や対象の範囲が絡む WO では、仕様を書く前に、実際の画面や地図、例を1つ出してもらう。<div class="eff">効果の見込み：前提の変更による仕様レビューのやり直しを減らす（今回は6回分）</div></div>
+    <div><b>2. 繰り返し出た穴を「仕様チェックリスト」にする</b>上の5種類（件数上限・タイムゾーン・色の意味・デモでの撮影準備・375px）に、論理削除と NULL の扱いを加え、WO-TEMPLATE の仕様欄に確認項目として入れる。WO-002 と WO-003 の2例で同じ穴が出たので、共通化してよい段階。<div class="eff">効果の見込み：仕様レビュー1回分を減らす</div></div>
+    <div><b>3. 単位・範囲の確認を、仕様レビューより先に済ませる</b>「何を1単位として数えるか」「どこに表示するか」は、技術的な詰めより先にオーナーと固める。批判役には単位が固まってから回す。<div class="eff">効果の見込み：手戻りの大きい変更を、レビューを回す前に止める</div></div>
+    <div><b>4. 失敗系のテストは「理由」まで確かめる</b>コードレビューで出たテストの穴（別の分岐で偶然通る）は、失敗理由まで検証すれば防げた。ROLE-implementer の作法に入れる。<div class="eff">効果の見込み：コードレビューの往復を減らす</div></div>
+    <div><b>5. 確認作業のオーナー負担を減らす</b>動作確認のログインは毎回オーナーが必要。テスト用アカウント（デモ専用）を用意できるかを検討する。スクショは内蔵ブラウザの撮影で右端が切れる問題があったので、撮り方を手順に残す。<div class="eff">効果の見込み：WO スレがオーナーを待つ時間を減らす</div></div>
+  </div>
+  <p class="src">出典: WO-002・WO-003 の仕様レビュー指摘と対応、WO-003-report、変更管理表、git log。</p>
+</section>
+
+<footer>チラトラ（flyer-tracker）WO-003 振り返り ・ 2026-10-12 作成 ・ 実在の地名・学校名は含めていない</footer>
+</div>
+</body>
+</html>
