@@ -26,10 +26,19 @@ import {
 import { LocationPicker } from "@/components/map/location-picker";
 import { addSchoolAction, deleteSchoolAction, updateSchoolAction } from "@/lib/data/actions";
 import type { School } from "@/lib/types";
+import type { SchoolSpotsView } from "@/lib/cooldown";
+import { SchoolSpots } from "@/components/schools/school-spots";
 
 const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
 
-export function SchoolManager({ schools }: { schools: School[] }) {
+export function SchoolManager({
+  schools,
+  spotsBySchool,
+}: {
+  schools: School[];
+  /** 学校ID → 立ち位置の欄の表示データ。null は実績・立ち位置の取得失敗（欄を出さない。WO-003 S-8） */
+  spotsBySchool: Record<string, SchoolSpotsView> | null;
+}) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
@@ -137,6 +146,12 @@ export function SchoolManager({ schools }: { schools: School[] }) {
 
       {error && <p className="px-1 text-sm text-destructive">{error}</p>}
 
+      {spotsBySchool === null && (
+        <p className="px-1 text-sm text-destructive">
+          配布実績を読み込めなかったため、クールダウンを表示できません
+        </p>
+      )}
+
       {schools.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-sm text-muted-foreground">
@@ -147,53 +162,57 @@ export function SchoolManager({ schools }: { schools: School[] }) {
         <ul className="flex flex-col gap-2">
           {schools.map((s) => {
             const hasCoords = s.lat != null && s.lng != null;
+            const spots = spotsBySchool?.[s.id];
             return (
               <li
                 key={s.id}
-                className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-sm"
+                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-sm"
               >
-                <SchoolIcon className="size-4 shrink-0 text-primary" />
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <span className="truncate font-medium">{s.name}</span>
-                  {s.url ? (
-                    <a
-                      href={s.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 text-xs text-primary hover:underline"
-                    >
-                      <ExternalLink className="size-3" />
-                      ホームページを開く
-                    </a>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">URL未登録</span>
-                  )}
+                <div className="flex items-center gap-2">
+                  <SchoolIcon className="size-4 shrink-0 text-primary" />
+                  <div className="flex min-w-0 flex-1 flex-col">
+                    <span className="truncate font-medium">{s.name}</span>
+                    {s.url ? (
+                      <a
+                        href={s.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <ExternalLink className="size-3" />
+                        ホームページを開く
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">URL未登録</span>
+                    )}
+                  </div>
+                  <span
+                    className={`shrink-0 ${hasCoords ? "text-primary" : "text-muted-foreground"}`}
+                    title={hasCoords ? "位置設定済み" : "位置未設定"}
+                  >
+                    {hasCoords ? <MapPin className="size-4" /> : <MapPinOff className="size-4" />}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0 gap-1.5"
+                    onClick={() => setEditTarget(s)}
+                  >
+                    <Pencil className="size-4" />
+                    編集
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0 text-destructive"
+                    aria-label="削除"
+                    disabled={pending}
+                    onClick={() => setDeleteTarget(s)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
                 </div>
-                <span
-                  className={`shrink-0 ${hasCoords ? "text-primary" : "text-muted-foreground"}`}
-                  title={hasCoords ? "位置設定済み" : "位置未設定"}
-                >
-                  {hasCoords ? <MapPin className="size-4" /> : <MapPinOff className="size-4" />}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="shrink-0 gap-1.5"
-                  onClick={() => setEditTarget(s)}
-                >
-                  <Pencil className="size-4" />
-                  編集
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="shrink-0 text-destructive"
-                  aria-label="削除"
-                  disabled={pending}
-                  onClick={() => setDeleteTarget(s)}
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+                {spots && <SchoolSpots view={spots} />}
               </li>
             );
           })}

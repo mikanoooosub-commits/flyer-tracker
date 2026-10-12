@@ -69,6 +69,16 @@ export type LocationPinStatus = {
   latest_start_time: string | null;
 };
 
+// ── クールダウン（WO-003）で取得する列だけの型 ───────────────────────────────
+/** クールダウンの判定に使う実績の列（取得もこの列だけ） */
+export type CooldownVisit = Pick<
+  Visit,
+  "id" | "location_id" | "date" | "start_time" | "created_at" | "count" | "rating"
+>;
+
+/** 小学校が設定されている配布場所（立ち位置）の列 */
+export type SchoolSpot = Pick<Location, "id" | "school_id" | "spot">;
+
 // ── 画面表示用に join した型 ─────────────────────────────────────────────────
 export type VisitWithRelations = Visit & {
   location: (Location & { school: School | null }) | null;

@@ -6,7 +6,10 @@ import type {
   LocationPinStatus,
   Location,
   MapNote,
+  CooldownVisit,
+  SchoolSpot,
 } from "@/lib/types";
+import { fetchAllRows, type FetchAllResult } from "@/lib/cooldown";
 
 // サーバーコンポーネントから呼ぶ読み取り関数群（"use server" は付けない）
 
@@ -106,6 +109,40 @@ export async function getPinStatuses(): Promise<LocationPinStatus[]> {
   const { data, error } = await supabase.from("location_pin_status").select("*");
   if (error) throw error;
   return (data ?? []) as LocationPinStatus[];
+}
+
+// ── クールダウン（WO-003）────────────────────────────────────────────────────
+// 件数の上限（Max rows）で黙って欠けないよう、fetchAllRows で全件を取り切る。
+// 取り切れなければ { ok: false } を返す（画面側でエラー文を出す。throw してページ全体を止めない）。
+
+const PAGE_SIZE = 1000;
+
+/** 未削除の実績を全件（判定に要る列だけ）。配布数0も非推奨の判定に使うので取る */
+export async function getCooldownVisits(): Promise<FetchAllResult<CooldownVisit>> {
+  const supabase = await createClient();
+  return fetchAllRows<CooldownVisit>(async (from, to) => {
+    const { data, count, error } = await supabase
+      .from("visits")
+      .select("id, location_id, date, start_time, created_at, count, rating", { count: "exact" })
+      .eq("is_deleted", false)
+      .order("id")
+      .range(from, to);
+    return { data, count, error };
+  }, PAGE_SIZE);
+}
+
+/** 小学校が設定されている配布場所（立ち位置）を全件 */
+export async function getSchoolSpots(): Promise<FetchAllResult<SchoolSpot>> {
+  const supabase = await createClient();
+  return fetchAllRows<SchoolSpot>(async (from, to) => {
+    const { data, count, error } = await supabase
+      .from("locations")
+      .select("id, school_id, spot", { count: "exact" })
+      .not("school_id", "is", null)
+      .order("id")
+      .range(from, to);
+    return { data, count, error };
+  }, PAGE_SIZE);
 }
 
 export async function getMapNotes(): Promise<MapNote[]> {
