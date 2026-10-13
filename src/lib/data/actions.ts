@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { VisitInput, ActionResult, VisitLog, VisitLogWithUser } from "@/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { COOLDOWN_DAYS_SAVE_ERROR, parseCooldownDays } from "@/lib/cooldown-setting";
 
 /** 学校＋立ち位置に一致する location を探し、無ければ作成して id を返す */
 async function resolveLocationId(
@@ -273,6 +274,43 @@ export async function deleteMapNoteAction(id: string): Promise<ActionResult> {
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "メモの削除に失敗しました" };
+  }
+}
+
+// ── クールダウン日数（WO-004） ──────────────────────────────────────────────
+
+/**
+ * クールダウン日数を保存する。入力はサーバー側で検証してから DB に渡す（S-5）。
+ * 引数は unknown で受ける（Server Action はブラウザから任意の値で呼べるため）。
+ * 更新した行がちょうど1行であることを確かめる（行が無い・RLS で見えないときも
+ * Supabase はエラーを返さず0行で成功扱いになるため。S-8）。
+ */
+export async function updateCooldownDaysAction(input: unknown): Promise<ActionResult> {
+  const parsed = parseCooldownDays(input);
+  if (!parsed.ok) return { ok: false, error: parsed.error };
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("app_settings")
+      .update({ cooldown_days: parsed.days })
+      .eq("id", true)
+      .select("id");
+    if (error) {
+      // 生のエラー文は画面に出さず、調査用にサーバーのログへ残す
+      console.error("[cooldown-setting] 保存に失敗:", error.message);
+      return { ok: false, error: COOLDOWN_DAYS_SAVE_ERROR };
+    }
+    if (data.length !== 1) {
+      console.error(`[cooldown-setting] 更新した行が1行でない: ${data.length} 行`);
+      return { ok: false, error: COOLDOWN_DAYS_SAVE_ERROR };
+    }
+
+    revalidatePath("/schools");
+    return { ok: true };
+  } catch (e) {
+    console.error("[cooldown-setting] 保存中に例外:", e);
+    return { ok: false, error: COOLDOWN_DAYS_SAVE_ERROR };
   }
 }
 

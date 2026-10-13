@@ -69,6 +69,13 @@ export type LocationPinStatus = {
   latest_start_time: string | null;
 };
 
+/** アプリ全体の設定（常に1行。id は true だけ）。WO-004 */
+export type AppSettings = {
+  id: boolean;
+  /** クールダウン日数（1〜365。DB の CHECK で守る） */
+  cooldown_days: number;
+};
+
 // ── クールダウン（WO-003）で取得する列だけの型 ───────────────────────────────
 /** クールダウンの判定に使う実績の列（取得もこの列だけ） */
 export type CooldownVisit = Pick<

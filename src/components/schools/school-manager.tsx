@@ -28,16 +28,24 @@ import { addSchoolAction, deleteSchoolAction, updateSchoolAction } from "@/lib/d
 import type { School } from "@/lib/types";
 import type { SchoolSpotsView } from "@/lib/cooldown";
 import { SchoolSpots } from "@/components/schools/school-spots";
+import { CooldownSetting } from "@/components/schools/cooldown-setting";
+import { COOLDOWN_DAYS_LOAD_ERROR } from "@/lib/cooldown-setting";
 
 const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
 
 export function SchoolManager({
   schools,
+  cooldownDays,
   spotsBySchool,
+  spotsLoadFailed,
 }: {
   schools: School[];
-  /** 学校ID → 立ち位置の欄の表示データ。null は実績・立ち位置の取得失敗（欄を出さない。WO-003 S-8） */
+  /** クールダウン日数（DB の設定の行）。null は読み込み失敗（日数の行と「変更」を出さず、エラー文を出す。WO-004） */
+  cooldownDays: number | null;
+  /** 学校ID → 立ち位置の欄の表示データ。null は日数・実績・立ち位置のどれかの取得失敗（欄を出さない） */
   spotsBySchool: Record<string, SchoolSpotsView> | null;
+  /** 実績・立ち位置の取得失敗（WO-003 S-8 の文を出す）。日数の失敗とは別に出し分ける */
+  spotsLoadFailed: boolean;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -79,6 +87,13 @@ export function SchoolManager({
 
   return (
     <div className="flex flex-col gap-4">
+      {/* ページの先頭（追加フォームより上）。学校が0校でも出す（WO-004 S-1） */}
+      {cooldownDays !== null ? (
+        <CooldownSetting days={cooldownDays} />
+      ) : (
+        <p className="px-1 text-sm text-destructive">{COOLDOWN_DAYS_LOAD_ERROR}</p>
+      )}
+
       <Card>
         <CardContent className="flex flex-col gap-3">
           <form onSubmit={handleAdd} className="flex flex-col gap-3">
@@ -146,7 +161,7 @@ export function SchoolManager({
 
       {error && <p className="px-1 text-sm text-destructive">{error}</p>}
 
-      {spotsBySchool === null && (
+      {spotsLoadFailed && (
         <p className="px-1 text-sm text-destructive">
           配布実績を読み込めなかったため、クールダウンを表示できません
         </p>

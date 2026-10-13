@@ -280,6 +280,19 @@ describe("S-3(c) 状態を求める", () => {
   });
 });
 
+// WO-004 E-7（回帰テスト）: 日数を変えると解禁日が変わる。判定関数は前から日数を引数で受けるので、実装前から通る
+describe("WO-004 E-7 日数を変えたときの解禁日", () => {
+  const latest = v({ id: "w", date: "2026-10-12" });
+
+  it("WO-004 E-7: 前回 2026-10-12・90日 → 解禁日 2027-01-10", () => {
+    expect(getSpotStatus(latest, latest, TODAY, 90).releaseDate).toBe("2027-01-10");
+  });
+
+  it("WO-004 E-7: 前回 2026-10-12・60日 → 解禁日 2026-12-11", () => {
+    expect(getSpotStatus(latest, latest, TODAY, 60).releaseDate).toBe("2026-12-11");
+  });
+});
+
 describe("S-3(d) 表示の並び", () => {
   const cooldown: SpotStatus = { kind: "cooldown", date: "2026-10-12", elapsedDays: 0, releaseDate: "2027-01-10", isFuture: false };
   const none: SpotStatus = { kind: "none", date: null, elapsedDays: null, releaseDate: null, isFuture: false };

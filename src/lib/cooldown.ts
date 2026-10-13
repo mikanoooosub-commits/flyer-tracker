@@ -4,9 +4,6 @@ import type { CooldownVisit } from "@/lib/types";
 
 export type { CooldownVisit };
 
-/** しきい値 N（日）。WO-004 で設定画面の値に置き換える予定 */
-export const COOLDOWN_DAYS = 90;
-
 export const NO_SPOT_NAME_LABEL = "（立ち位置名なし）";
 
 export type LocationLatest = {

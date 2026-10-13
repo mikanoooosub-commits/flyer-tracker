@@ -286,3 +286,35 @@ create policy visits_update on public.visits for update to authenticated using (
 -- visit_logs: 認証済みは参照のみ。書き込みはトリガー（security definer）経由のみ
 drop policy if exists visit_logs_select on public.visit_logs;
 create policy visit_logs_select on public.visit_logs for select to authenticated using (true);
+
+-- ============================================================================
+-- app_settings（アプリ全体の設定。WO-004 クールダウン日数）
+--   全校共通の設定を1行だけ持つ。今はクールダウン日数だけ。
+--   この節だけを単独で流しても動くように、表・初期行・権限・RLS をまとめて書く。
+--   demo スキーマにも同じ DDL を当てる（supabase/schema_demo.sql）。
+--   戻し SQL: supabase/rollback/WO-004-app-settings-down.sql（コードを先に戻してから流す）
+-- ============================================================================
+create table if not exists public.app_settings (
+  -- 主キーが true しか取れない＝行は常に1行（2行目の insert は主キーの重複で止まる）
+  id            boolean primary key default true check (id),
+  -- 不変条件: 1〜365 の整数・NULL 不可（アプリの検証 src/lib/cooldown-setting.ts と範囲を揃える）
+  cooldown_days integer not null check (cooldown_days between 1 and 365)
+);
+
+-- 初期値 90 の1行。行が無いときだけ入れる（流し直しても、画面から変えた値を上書きしない）
+insert into public.app_settings (id, cooldown_days)
+values (true, 90)
+on conflict (id) do nothing;
+
+-- 権限: Supabase の既定で付く anon・authenticated の権限を先に外し、authenticated に参照・更新だけを付ける。
+--   行の追加・削除は DB の管理者（SQL Editor）だけ。
+revoke all on public.app_settings from anon, authenticated;
+grant select, update on public.app_settings to authenticated;
+
+alter table public.app_settings enable row level security;
+
+-- 認証済みは参照・更新のみ。insert・delete のポリシーは作らない
+drop policy if exists app_settings_select on public.app_settings;
+drop policy if exists app_settings_update on public.app_settings;
+create policy app_settings_select on public.app_settings for select to authenticated using (true);
+create policy app_settings_update on public.app_settings for update to authenticated using (true) with check (true);

@@ -145,6 +145,37 @@ export async function getSchoolSpots(): Promise<FetchAllResult<SchoolSpot>> {
   }, PAGE_SIZE);
 }
 
+// ── クールダウン日数（WO-004）────────────────────────────────────────────────
+
+export type CooldownDaysResult = { ok: true; days: number } | { ok: false; reason: string };
+
+/**
+ * 設定の行からクールダウン日数を読む。
+ * 読めない（エラー・行が無い・想定外の値）ときは { ok: false } を返す。予備の値は使わない（WO-004 S-4）。
+ * throw しない（ページ全体を止めず、画面側でエラー文を出すため）。
+ */
+export async function getCooldownDays(): Promise<CooldownDaysResult> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("app_settings")
+      .select("cooldown_days")
+      .eq("id", true)
+      .maybeSingle();
+    if (error) return { ok: false, reason: `取得エラー: ${error.message}` };
+    if (data === null) return { ok: false, reason: "設定の行が無い" };
+
+    // 型を付けていないクライアントなので、実行時に値を確かめる（as で済ませない）
+    const days: unknown = data.cooldown_days;
+    if (typeof days !== "number" || !Number.isInteger(days)) {
+      return { ok: false, reason: `日数が整数でない: ${String(days)}` };
+    }
+    return { ok: true, days };
+  } catch (e) {
+    return { ok: false, reason: `取得中に例外: ${String(e)}` };
+  }
+}
+
 export async function getMapNotes(): Promise<MapNote[]> {
   const supabase = await createClient();
   const { data, error } = await supabase

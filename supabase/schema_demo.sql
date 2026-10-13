@@ -242,6 +242,33 @@ drop policy if exists demo_visit_logs_select on demo.visit_logs;
 create policy demo_visit_logs_select on demo.visit_logs for select to authenticated using (true);
 
 -- ============================================================================
+-- demo.app_settings（アプリ全体の設定。WO-004 クールダウン日数）
+--   public.app_settings と同じ DDL（schema.sql の同名の節）。demo は demo 用の値を持つ（デモで変えても本番に影響しない）。
+--   戻し SQL: supabase/rollback/WO-004-app-settings-down.sql（コードを先に戻してから流す）
+-- ============================================================================
+create table if not exists demo.app_settings (
+  -- 主キーが true しか取れない＝行は常に1行
+  id            boolean primary key default true check (id),
+  -- 不変条件: 1〜365 の整数・NULL 不可
+  cooldown_days integer not null check (cooldown_days between 1 and 365)
+);
+
+-- 初期値 90 の1行。行が無いときだけ入れる（流し直しても、画面から変えた値を上書きしない）
+insert into demo.app_settings (id, cooldown_days)
+values (true, 90)
+on conflict (id) do nothing;
+
+revoke all on demo.app_settings from anon, authenticated;
+grant select, update on demo.app_settings to authenticated;
+
+alter table demo.app_settings enable row level security;
+
+drop policy if exists demo_app_settings_select on demo.app_settings;
+drop policy if exists demo_app_settings_update on demo.app_settings;
+create policy demo_app_settings_select on demo.app_settings for select to authenticated using (true);
+create policy demo_app_settings_update on demo.app_settings for update to authenticated using (true) with check (true);
+
+-- ============================================================================
 -- ロールバック用SQL（戻すときだけ、コメントを外して実行）
 --   注意: demo スキーマ内のデータはすべて消える。
 --        本番（public）には影響しないが、実行前に内容を確認すること。
