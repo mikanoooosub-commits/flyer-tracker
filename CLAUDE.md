@@ -51,6 +51,8 @@ Leaflet + OpenStreetMap + Nominatim（無料・APIキー不要）/ Supabase（Au
 - **監査ログはトリガーで自動記録**（`visits` の create/update/delete を `visit_logs` に before/after jsonb で）。
   **削除は論理削除**（`is_deleted`）。RLSでも物理DELETEを許可しない。
 - **RLSは全テーブル有効**。`authenticated` のみ、`anon`（未認証）は一切不可。サインアップは無効化。
+- **Supabase の「Allow new users to sign up」は必ずオフ**。Google ログイン（WO-006）で未登録のアカウントを拒否する**唯一の守り**
+  （Google 側は本番公開で誰でも通る）。オンにすると、誰でも Google で入れて本番データが見える。メンバーを増やすときは管理者が招待する。本番反映のたびに確かめる。
 - **デモ表示モード**（`demo` スキーマ方式）:
   - 本番と同じプロジェクト内に同構造の `demo` スキーマを持ち、ログイン画面のチェックボックスで
     参照先を public/demo に切替。切替点は `server.ts` の `createClient()` の1か所（`db.schema`）。
@@ -66,7 +68,7 @@ Leaflet + OpenStreetMap + Nominatim（無料・APIキー不要）/ Supabase（Au
 
 ## 次にやること / 保留中
 - WO-004 は本番反映済み（2026-10-13）。戻すときは**コードを先に戻してから** `supabase/rollback/WO-004-app-settings-down.sql`（流すのはオーナー）。
-- 次の機能: **WO-006 Google ログイン**（2026-10-13 仕様承認・WOスレで実装）。
+- **WO-006 Google ログイン**は 2026-10-13 受入 → **本番反映待ち**（順番: オーナーが Google 側を本番公開に切り替え → push → デプロイ確認 → 本番確認＝UAT〔本番のログイン画面にボタン・メインの Gmail で入れる〕）。
 - **削除待ち**（DB の破壊的な操作の決まりは `work-orders/README.md`。PM が WO 受入のたびに棚卸し）: なし（2026-10-13 WO-004 受入時に棚卸し済み）。
 - その他の機能追加は着手前に `docs/構想・ロードマップ.md` を確認する（例: 配布セッション＋在庫連動＝残部逆算方式）。
 - **Google ログイン**: WO-005（事前検証）は 2026-10-13 **受入**。サインアップ無効は Google 経由にも効き、既存ユーザーに自動で紐づくと実地で確認 → 次は **WO-006（実装・フルコース）**。

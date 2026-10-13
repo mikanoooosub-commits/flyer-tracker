@@ -128,6 +128,7 @@ sequenceDiagram
    - push の後、PM が Vercel のデプロイ結果を確認する（例: `gh api repos/<owner>/<repo>/commits/<sha>/status` で Vercel の状態が success）。
    - オーナーが本番の画面で変更を確かめる（**デモ表示モードを外して**ログイン）。気になる表示があれば PM に伝え、不具合ならバグ管理表に記録して WO を起こす。
    - いつ出すかはオーナーが決める（受入したら即 push とは限らない）。
+   - **毎回、Supabase の「Allow new users to sign up」がオフであることを確かめる**（Google ログインで未登録を拒否する唯一の守り。CLAUDE.md の方針）。
 
 ### サブエージェント起動の固定文（補足・絞り込みを加えない）
 起動する側（PM／実装）が指示文を書くと、無意識に見る範囲を絞ってしまう。だから文面を固定する。
