@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MapPin, Mail, CheckCircle2, FlaskConical, KeyRound } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { disableDemoMode, enableDemoMode, readDemoMode } from "@/lib/demo";
+import { detectLoginError, urlWithoutLoginError } from "@/lib/auth-error";
+import { GoogleLogo } from "@/components/google-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+
+// 未登録の文はメールリンクの既存の文と揃える（WO-006 Q-3）
+const NOT_REGISTERED_MESSAGE = "このメールアドレスは登録されていません。管理者に招待を依頼してください。";
+const LOGIN_FAILED_MESSAGE = "ログインに失敗しました。もう一度お試しください。";
 
 export default function LoginPage() {
   const [mode, setMode] = useState<"password" | "magic">("password");
@@ -27,10 +33,48 @@ export default function LoginPage() {
   const [magicStatus, setMagicStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [magicMessage, setMagicMessage] = useState("");
 
+  // Google でログイン
+  const [googleStatus, setGoogleStatus] = useState<"idle" | "redirecting">("idle");
+  // Google ボタンの下に出すエラー文（URL で戻ってきたエラーと、signInWithOAuth のエラーの両方）
+  const [googleError, setGoogleError] = useState("");
+  // 素早い2回押しで state の反映より先に2回目が来ても、1回だけ移動するように ref でも止める
+  const googleRedirectingRef = useRef(false);
+
   // 実際の cookie に初期状態を合わせる。
   // マウント後に読むのは、サーバー描画と初期 state を一致させて hydration のズレを避けるため。
   useEffect(() => {
     setUseDemo(readDemoMode());
+  }, []);
+
+  // Google から拒否されて戻ったときのエラーは URL の「#」以降で届くため、ブラウザ側で読む。
+  // URL の値はそのまま出さず、決まった文だけを出す。読んだら URL から消す（再読み込みで出続けないように）。
+  useEffect(() => {
+    const result = detectLoginError(window.location.hash, window.location.search);
+    if (result === "none") return;
+    setGoogleError(result === "not_registered" ? NOT_REGISTERED_MESSAGE : LOGIN_FAILED_MESSAGE);
+    // URL を消すのは、この描画の effect が全部終わってから（setTimeout）にする。
+    // Next.js は history.replaceState を自分のルーターと同期させる差し替えを、親（ルーター側）の effect で入れる。
+    // 初回の描画ではこのページの effect の方が先に走るため、ここで直接呼ぶと差し替え前の replaceState になり、
+    // ルーターが元の URL（エラー付き）を覚えたままになって、後でルーターが動いたときに URL が元に戻ってしまう（実測）。
+    const timer = window.setTimeout(() => {
+      window.history.replaceState(
+        null,
+        "",
+        urlWithoutLoginError(window.location.pathname, window.location.search)
+      );
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // Google の画面からブラウザの「戻る」で戻ると、押せない状態のままページが復元されることがあるので元に戻す
+  useEffect(() => {
+    function handlePageShow(e: PageTransitionEvent) {
+      if (!e.persisted) return;
+      googleRedirectingRef.current = false;
+      setGoogleStatus("idle");
+    }
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
   }, []);
 
   function handleDemoToggle(checked: boolean) {
@@ -43,6 +87,7 @@ export default function LoginPage() {
 
   async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault();
+    setGoogleError("");
     setPwStatus("loading");
     setPwMessage("");
     try {
@@ -66,6 +111,7 @@ export default function LoginPage() {
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
+    setGoogleError("");
     if (!magicEmail.trim()) return;
     setMagicStatus("sending");
     setMagicMessage("");
@@ -88,6 +134,26 @@ export default function LoginPage() {
           ? "このメールアドレスは登録されていません。管理者に招待を依頼してください。"
           : raw || "送信に失敗しました。"
       );
+    }
+  }
+
+  async function handleGoogleLogin() {
+    if (googleRedirectingRef.current) return;
+    googleRedirectingRef.current = true;
+    setGoogleError("");
+    setGoogleStatus("redirecting");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/confirm` },
+      });
+      if (error) throw error;
+      // 成功するとブラウザが Google の画面へ移るので、ボタンは押せないままにしておく
+    } catch {
+      googleRedirectingRef.current = false;
+      setGoogleStatus("idle");
+      setGoogleError(LOGIN_FAILED_MESSAGE);
     }
   }
 
@@ -206,6 +272,23 @@ export default function LoginPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Google でログイン。ロゴ・色・文言は Google のブランドの決まり（ライトのテーマ）に、
+          高さ・幅・角丸・書体は既存の「ログイン」ボタン（size="lg"）に合わせる（WO-006 S-1） */}
+      <div className="mt-4 flex w-full flex-col gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={handleGoogleLogin}
+          disabled={googleStatus === "redirecting"}
+          className="w-full border border-[#747775] bg-white text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F]"
+        >
+          <GoogleLogo className="size-5" />
+          {googleStatus === "redirecting" ? "Google に移動中…" : "Google でログイン"}
+        </Button>
+        {googleError && <p className="text-sm text-destructive">{googleError}</p>}
+      </div>
 
       {/* デモ表示モード: DB の参照先を demo スキーマに切り替える（本番データは表示されない） */}
       <label className="mt-4 flex w-full cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3">
