@@ -18,13 +18,13 @@ export function AppHeader({ title, subtitle, backHref, action }: Props) {
         {backHref ? (
           <Link
             href={backHref}
-            className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary"
+            className="flex size-11 items-center justify-center rounded-full bg-primary-soft text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="戻る"
           >
             <ChevronLeft className="size-5" />
           </Link>
         ) : (
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <span className="flex size-11 items-center justify-center rounded-full bg-primary-soft text-primary">
             <MapPin className="size-5" />
           </span>
         )}

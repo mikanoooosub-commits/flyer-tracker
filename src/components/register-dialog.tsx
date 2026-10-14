@@ -52,7 +52,7 @@ export function RegisterDialog({
             type="button"
             onClick={() => setRegisterType("visit")}
             className={cn(
-              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
+              "min-h-11 flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               registerType === "visit"
                 ? "border-primary bg-primary-soft text-primary-soft-foreground"
                 : "border-input bg-card text-muted-foreground"
@@ -64,7 +64,7 @@ export function RegisterDialog({
             type="button"
             onClick={() => setRegisterType("note")}
             className={cn(
-              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
+              "min-h-11 flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               registerType === "note"
                 ? "border-primary bg-primary-soft text-primary-soft-foreground"
                 : "border-input bg-card text-muted-foreground"

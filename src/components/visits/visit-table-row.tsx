@@ -90,7 +90,6 @@ export function VisitTableRow({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-8"
                 aria-label="編集"
                 onClick={() => setEditOpen(true)}
               >
@@ -120,7 +119,7 @@ export function VisitTableRow({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 text-primary"
+              className="text-primary"
               aria-label="復元"
               disabled={pending}
               onClick={() => toggleDeleted(false)}
@@ -131,7 +130,7 @@ export function VisitTableRow({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 text-danger"
+              className="text-danger"
               aria-label="削除"
               disabled={pending}
               onClick={() => toggleDeleted(true)}

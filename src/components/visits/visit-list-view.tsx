@@ -169,20 +169,20 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
             </Select>
           </div>
 
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 items-center gap-2 text-sm">
             <input
               type="checkbox"
-              className="size-4 accent-primary"
+              className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               checked={filters.hideZero}
               onChange={(e) => updateParam("hidezero", e.target.checked ? "1" : null)}
             />
             0件の履歴を非表示
           </label>
 
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex min-h-11 items-center gap-2 text-sm">
             <input
               type="checkbox"
-              className="size-4 accent-primary"
+              className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               checked={filters.includeDeleted}
               onChange={(e) => updateParam("deleted", e.target.checked ? "1" : null)}
             />

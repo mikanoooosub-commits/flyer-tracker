@@ -46,7 +46,7 @@ function ColorPicker({
           type="button"
           onClick={() => onChange(p.value)}
           className={cn(
-            "flex items-center gap-1.5 rounded-control border-2 px-3 py-1 text-xs font-bold transition-colors",
+            "flex items-center gap-1.5 min-h-11 rounded-control border-2 px-3 py-1 text-xs font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             value === p.value ? "border-foreground" : "border-transparent bg-muted"
           )}
         >

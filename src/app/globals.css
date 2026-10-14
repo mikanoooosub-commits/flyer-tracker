@@ -375,7 +375,9 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   color: var(--text-body);
 }
 .flyer-school-popup a {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px; /* 押す範囲 44px（WO-008 S-1）。文字の大きさは変えない */
   margin-top: 4px;
   color: var(--brand);
   font-weight: 700;
@@ -398,4 +400,22 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   font-size: 12px;
   color: var(--text-body);
   white-space: normal;
+}
+
+/* 地図の拡大縮小ボタンの押す範囲を 44px に（WO-008 S-1。Leaflet 既定は 30px） */
+.leaflet-touch .leaflet-bar a.leaflet-control-zoom-in,
+.leaflet-touch .leaflet-bar a.leaflet-control-zoom-out {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+
+/* 吹き出しの閉じる「×」の押す範囲を 44px に（WO-008 S-1。Leaflet 既定は 24px）。内容と重ならないよう右に余白をあける */
+.leaflet-container .leaflet-popup a.leaflet-popup-close-button {
+  width: 44px;
+  height: 44px;
+  line-height: 44px;
+}
+.leaflet-popup-content .flyer-school-popup {
+  padding-right: 28px;
 }

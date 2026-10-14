@@ -28,12 +28,13 @@ function makePinIcon(rating: Rating | null) {
 }
 
 function makeNoteIcon(color: string) {
-  const html = `<div style="width:24px;height:24px;border-radius:var(--shape-round);background:${color};border:3px solid var(--map-mark-edge);box-shadow:var(--elevation-map-mark);"></div>`;
+  // 透明な余白（padding）で当たり判定を 44px に広げる。見た目の丸は 24px のまま（ピンと同じ方式）
+  const html = `<div style="width:44px;height:44px;padding:10px;box-sizing:border-box;"><div style="width:24px;height:24px;border-radius:var(--shape-round);background:${color};border:3px solid var(--map-mark-edge);box-shadow:var(--elevation-map-mark);"></div></div>`;
   return L.divIcon({
     html,
     className: "flyer-note",
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   });
 }
 
@@ -41,12 +42,12 @@ export type SchoolPin = { id: string; name: string; url: string | null; lat: num
 
 // 小学校のピン（全校共通アイコンなので使い回す）
 const SCHOOL_ICON = L.divIcon({
-  html: `<div style="width:40px;height:44px;padding:6px;box-sizing:border-box;display:flex;justify-content:center;">
+  html: `<div style="width:44px;height:44px;padding:6px 8px;box-sizing:border-box;display:flex;justify-content:center;">
     ${pinSvg("school", 28, 36)}
   </div>`,
   className: "flyer-school",
-  iconSize: [40, 44],
-  iconAnchor: [20, 44],
+  iconSize: [44, 44],
+  iconAnchor: [22, 44],
 });
 
 /** 現在地マーカー。heading があれば向きの扇形（コーン）を表示。 */

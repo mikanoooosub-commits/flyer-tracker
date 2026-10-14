@@ -25,9 +25,12 @@ export function BottomTabBar() {
             <Link
               key={tab.href}
               href={tab.href}
+              aria-current={active ? "page" : undefined}
               className={cn(
-                "flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs font-bold transition-colors",
-                active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                "-mt-px flex flex-1 flex-col items-center gap-0.5 border-t-4 py-2 text-xs font-bold outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+                active
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               )}
             >
               <Icon className="size-5" />

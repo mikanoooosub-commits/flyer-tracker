@@ -150,10 +150,10 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
 
       {/* 現在地トラッキング */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pb-2 text-sm">
-        <label className="flex items-center gap-2 font-medium">
+        <label className="flex min-h-11 items-center gap-2 font-medium">
           <input
             type="checkbox"
-            className="size-4 accent-primary"
+            className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             checked={track.tracking}
             onChange={handleTrackingToggle}
           />
@@ -177,7 +177,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         <div className="mx-4 mb-2 flex items-center gap-2 rounded-card border border-primary bg-primary-soft px-3 py-2 text-sm">
           <Crosshair className="size-4 shrink-0 text-primary" />
           <span className="flex-1">地図をタップして、この配布場所の位置を指定してください</span>
-          <Button variant="ghost" size="sm" onClick={() => router.replace("/")}>
+          <Button variant="ghost" size="sm" aria-label="配置をやめる" onClick={() => router.replace("/")}>
             <X className="size-4" />
           </Button>
         </div>
@@ -370,7 +370,7 @@ function NewLocationDialog({
             type="button"
             onClick={() => setMode("location")}
             className={cn(
-              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
+              "min-h-11 flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               mode === "location"
                 ? "border-primary bg-primary-soft text-primary-soft-foreground"
                 : "border-input bg-card text-muted-foreground"
@@ -382,7 +382,7 @@ function NewLocationDialog({
             type="button"
             onClick={() => setMode("note")}
             className={cn(
-              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
+              "min-h-11 flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
               mode === "note"
                 ? "border-primary bg-primary-soft text-primary-soft-foreground"
                 : "border-input bg-card text-muted-foreground"

@@ -55,7 +55,7 @@ function DialogContent({
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-control opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none">
+        <DialogPrimitive.Close className="absolute top-1.5 right-1.5 flex size-11 items-center justify-center rounded-control opacity-70 transition-opacity hover:opacity-100 focus-visible:opacity-100 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none">
           <XIcon className="size-4" />
           <span className="sr-only">閉じる</span>
         </DialogPrimitive.Close>

@@ -220,7 +220,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setMode("magic")}
-                className="text-center text-xs font-bold text-primary hover:underline"
+                className="min-h-11 rounded-control text-center text-xs font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 初回の方・パスワード未設定の方はこちら（メールでログイン）
               </button>
@@ -261,7 +261,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setMode("password")}
-                className="text-center text-xs font-bold text-primary hover:underline"
+                className="min-h-11 rounded-control text-center text-xs font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 パスワードでログインに戻る
               </button>
@@ -297,7 +297,7 @@ export default function LoginPage() {
           type="checkbox"
           checked={useDemo}
           onChange={(e) => handleDemoToggle(e.target.checked)}
-          className="mt-0.5 size-4 shrink-0 accent-demo-field-icon"
+          className="mt-0.5 size-4 shrink-0 accent-demo-field-icon focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
         <span className="flex flex-col gap-0.5">
           <span className="flex items-center gap-1.5 text-sm font-bold text-demo-field-foreground">

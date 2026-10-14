@@ -134,7 +134,6 @@ export function LocationPicker({
                 }
               }}
               placeholder="住所・学校名・施設名で検索"
-              className="h-9"
             />
             <Button
               type="button"
@@ -156,7 +155,7 @@ export function LocationPicker({
                   <button
                     type="button"
                     onClick={() => pick(r)}
-                    className="block w-full px-3 py-2 text-left hover:bg-accent"
+                    className="flex min-h-11 w-full items-center px-3 py-2 text-left outline-none hover:bg-accent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                   >
                     {r.display_name}
                   </button>

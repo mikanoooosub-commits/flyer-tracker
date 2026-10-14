@@ -135,7 +135,7 @@ export function SchoolManager({
                 setShowPicker((v) => !v);
                 if (!pos) setPos(DEFAULT_CENTER);
               }}
-              className="flex items-center gap-1 self-start text-xs font-bold text-primary"
+              className="flex min-h-11 items-center gap-1 self-start rounded-control text-xs font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ChevronDown className={`size-3.5 transition-transform ${showPicker ? "rotate-180" : ""}`} />
               地図で位置を指定（任意）
@@ -192,7 +192,7 @@ export function SchoolManager({
                         href={s.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-primary hover:underline"
+                        className="flex min-h-11 items-center gap-1 rounded-control text-xs text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <ExternalLink className="size-3" />
                         ホームページを開く

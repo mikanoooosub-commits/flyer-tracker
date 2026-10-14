@@ -18,7 +18,6 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   // メタタグには CSS 変数を使えないため、画面の地（globals.css の --surface-page ＝ --sumi-50）と同じ色を直接書く（WO-007 S-9）
   themeColor: "#f4f6fa",
 };

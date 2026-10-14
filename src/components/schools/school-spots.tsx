@@ -28,7 +28,7 @@ export function SchoolSpots({ view }: { view: SchoolSpotsView }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-1 self-start text-xs font-bold text-primary"
+        className="flex min-h-11 items-center gap-1 self-start rounded-control text-xs font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ChevronDown className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
         立ち位置（{view.total}）
