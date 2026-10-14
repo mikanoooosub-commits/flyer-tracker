@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { M_PLUS_Rounded_1c } from "next/font/google";
+import { BIZ_UDPGothic } from "next/font/google";
 import "./globals.css";
 
-const mplusRounded = M_PLUS_Rounded_1c({
-  variable: "--font-mplus-rounded",
-  weight: ["400", "500", "700", "800"],
+// 書体は BIZ UDPゴシック（UD 書体）。太さは決まりの2段（400・700）だけ読み込む（WO-007 S-4）
+const bizUdpGothic = BIZ_UDPGothic({
+  variable: "--font-biz-udp",
+  weight: ["400", "700"],
   subsets: ["latin"],
   display: "swap",
 });
@@ -18,7 +19,8 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#f7f8fa",
+  // メタタグには CSS 変数を使えないため、画面の地（globals.css の --surface-page ＝ --sumi-50）と同じ色を直接書く（WO-007 S-9）
+  themeColor: "#f4f6fa",
 };
 
 export default function RootLayout({
@@ -28,7 +30,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body className={`${mplusRounded.variable} font-sans antialiased`}>
+      <body className={`${bizUdpGothic.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

@@ -62,7 +62,7 @@ export function VisitRow({
 
   if (editing) {
     return (
-      <Card className={visit.is_deleted ? "opacity-70" : ""}>
+      <Card className={visit.is_deleted ? "bg-deleted" : ""}>
         <CardContent>
           <VisitForm
             schools={schools}
@@ -82,7 +82,7 @@ export function VisitRow({
   }
 
   return (
-    <Card className={visit.is_deleted ? "opacity-60" : ""}>
+    <Card className={visit.is_deleted ? "bg-deleted" : ""}>
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
@@ -112,20 +112,20 @@ export function VisitRow({
         <div className="flex items-center gap-3 text-sm">
           <span className="font-bold">{visit.count != null ? `${visit.count}枚` : "枚数未記入"}</span>
           {visit.is_deleted && (
-            <Badge variant="outline" className="text-destructive">
+            <Badge variant="outline" className="text-danger">
               削除済み
             </Badge>
           )}
         </div>
 
         {visit.memo && (
-          <p className="flex items-start gap-1.5 rounded-lg bg-muted/60 p-2.5 text-sm text-muted-foreground">
+          <p className="flex items-start gap-1.5 rounded-control bg-muted p-2.5 text-sm text-muted-foreground">
             <FileText className="mt-0.5 size-3.5 shrink-0" />
             <span className="whitespace-pre-wrap">{visit.memo}</span>
           </p>
         )}
 
-        <div className="flex flex-wrap items-center gap-1 border-t border-border/50 pt-2">
+        <div className="flex flex-wrap items-center gap-1 border-t border-border pt-2">
           {!visit.is_deleted && (
             <>
               <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => setEditing(true)}>
@@ -159,7 +159,7 @@ export function VisitRow({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1.5 text-destructive"
+                className="gap-1.5 text-danger"
                 disabled={pending}
                 onClick={() => toggleDeleted(true)}
               >

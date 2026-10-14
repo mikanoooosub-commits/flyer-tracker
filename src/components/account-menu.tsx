@@ -101,7 +101,7 @@ function PasswordDialog() {
         </DialogHeader>
         {status === "done" ? (
           <div className="flex flex-col gap-3 py-2">
-            <p className="text-sm font-bold text-rating-good">パスワードを設定しました。</p>
+            <p className="text-sm font-bold text-success">パスワードを設定しました。</p>
             <p className="text-sm text-muted-foreground">
               次回から、このパスワードでログインできます。
             </p>
@@ -135,7 +135,7 @@ function PasswordDialog() {
                 required
               />
             </div>
-            {status === "error" && <p className="text-sm text-destructive">{message}</p>}
+            {status === "error" && <p className="text-sm text-danger">{message}</p>}
             <Button type="submit" disabled={status === "saving"}>
               {status === "saving" ? "設定中…" : "パスワードを設定"}
             </Button>

@@ -1,128 +1,249 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/*
+ * 見た目のトークン（WO-007。決まりは docs/デザインの決まり.md）
+ * - 素の値: 色・影の値そのもの。色の値（#… 等）を書いてよいのは、下の「素の値ここから〜ここまで」の間だけ。
+ * - 意味の名前: 用途で付けた名前。画面・部品・このファイルの他の規則は、意味の名前だけを使う。
+ * - ダークテーマは「後で」（今は作らない）。
+ */
 
+/* ── 素の値ここから ───────────────────────────────────────────────────────── */
 :root {
-  --radius: 0.9rem;
+  /* 藍（基調） */
+  --ai-800: #1b3573;
+  --ai-700: #22428f;
+  --ai-100: #e5ebf8;
 
-  /* すっきり・実用寄りのニュートラルトーン */
-  --background: oklch(0.98 0.004 260);
-  --foreground: oklch(0.26 0.02 260);
+  /* 墨（文字・線・面のニュートラル） */
+  --sumi-900: #18223a;
+  --sumi-600: #56607a;
+  --sumi-500: #737c91;
+  --sumi-200: #dde2ec;
+  --sumi-100: #e9edf4;
+  --sumi-50: #f4f6fa;
+  --shiro: #ffffff;
+  --shiro-92: #ffffffeb; /* 地図の名前のラベルの地（白・不透明度 92%） */
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.26 0.02 260);
+  /* 赤（危険。必ず文字かアイコンと一緒に出す） */
+  --aka-800: #8a1f16;
+  --aka-700: #a8261b;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.26 0.02 260);
+  /* 黄（通学帽の黄。デモ表示モード） */
+  --ki-950: #2a2300;
+  --ki-700: #806400;
+  --ki-400: #ffd84a;
+  --ki-50: #fff8db;
 
-  --primary: oklch(0.55 0.16 255);
-  --primary-foreground: oklch(0.99 0.005 260);
+  /* 評価（ピン）。色相の方針は変えない: 緑＝良好・灰＝普通・赤＝非推奨 */
+  --hyoka-good: #20a04e; /* oklch(0.62 0.16 150) */
+  --hyoka-normal: #95989f; /* oklch(0.68 0.01 267) */
+  --hyoka-bad: #de3b3d; /* oklch(0.60 0.20 25) */
 
-  --secondary: oklch(0.95 0.01 260);
-  --secondary-foreground: oklch(0.32 0.03 260);
+  /* 評価のバッジ（淡い地＋濃い文字） */
+  --hyoka-good-50: #e3f4e8;
+  --hyoka-good-800: #1d6b3a;
+  --hyoka-normal-50: #eceef1;
+  --hyoka-normal-800: #4a5260;
+  --hyoka-bad-50: #fbe6e4;
+  --hyoka-bad-800: #a2291f;
 
-  --muted: oklch(0.96 0.006 260);
-  --muted-foreground: oklch(0.53 0.02 260);
+  /* 地図 */
+  --ao-600: #2563eb; /* 現在地 */
+  --ao-600-30: #2563eb4d; /* 現在地の向きの扇形の塗り（不透明度 30%） */
+  --ao-600-50: #2563eb80; /* 現在地の向きの扇形の線（不透明度 50%） */
+  --hai-500: #6b7280; /* 履歴なしのピンの枠 */
 
-  --accent: oklch(0.95 0.02 255);
-  --accent-foreground: oklch(0.34 0.05 260);
+  /* 地図メモの5色（OKLCH の色相 H は docs/デザインの決まり.md） */
+  --memo-yellow: #eab308;
+  --memo-purple: #8b5cf6;
+  --memo-orange: #ee8700;
+  --memo-blue: #3b82f6;
+  --memo-cyan: #06b6d4;
 
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.99 0.005 260);
+  /* 影・暗幕 */
+  --kage-05: #0000000d;
+  --kage-10: #0000001a;
+  --kage-25: #00000040;
+  --kage-45: #00000073;
+  --kage-50: #00000080;
 
-  --border: oklch(0.91 0.008 260);
-  --input: oklch(0.92 0.008 260);
-  --ring: oklch(0.55 0.16 255);
+  /* 角 */
+  --corner-8: 8px;
+  --corner-12: 12px;
+  --corner-round: 9999px;
+}
+/* ── 素の値ここまで ───────────────────────────────────────────────────────── */
 
-  --chart-1: oklch(0.55 0.16 255);
-  --chart-2: oklch(0.65 0.16 150);
-  --chart-3: oklch(0.7 0.15 60);
-  --chart-4: oklch(0.6 0.2 25);
-  --chart-5: oklch(0.6 0.12 300);
+/* ── 意味の名前 ───────────────────────────────────────────────────────────── */
+:root {
+  /* 地 */
+  --surface-page: var(--sumi-50); /* 画面の地 */
+  --surface-card: var(--shiro); /* カードの地（ダイアログ・入力欄・表も） */
+  --surface-muted: var(--sumi-100); /* 淡い地（表の見出し・メモの枠・色のチップ） */
+  --surface-muted-hover: var(--sumi-200); /* 淡い地のボタンを押している間 */
+  --surface-deleted: var(--sumi-100); /* 論理削除済みの実績の行・カード */
 
-  /* 評価に対応するピン／バッジ色 */
-  --rating-good: oklch(0.62 0.16 150);   /* 緑：良好 */
-  --rating-normal: oklch(0.68 0.01 260); /* グレー：普通 */
-  --rating-bad: oklch(0.6 0.2 25);       /* 赤：非推奨 */
+  /* 文字 */
+  --text-body: var(--sumi-900); /* 本文 */
+  --text-muted: var(--sumi-600); /* 補足・入力欄のプレースホルダー */
+
+  /* 線 */
+  --line-decor: var(--sumi-200); /* 飾りの線（区切り線。基準なし） */
+  --line-control: var(--sumi-500); /* 部品の境目（入力欄・セレクト・副ボタンの枠。3:1 以上） */
+
+  /* 基調（藍） */
+  --brand: var(--ai-700); /* 主ボタン・選択中 */
+  --brand-hover: var(--ai-800); /* 主ボタンを押している間 */
+  --on-brand: var(--shiro); /* 基調の上の文字 */
+  --brand-soft: var(--ai-100); /* 基調の淡い地（選択中の地・クールダウン中のラベル等） */
+  --on-brand-soft: var(--ai-800); /* 淡い地の上の濃い文字 */
+
+  /* フォーカスの輪（不透明・地に対して 3:1 以上） */
+  --focus-ring: var(--ai-700);
+
+  /* 危険（文字と塗りを分ける） */
+  --danger-text: var(--aka-700); /* エラー文・削除の文字 */
+  --danger-fill: var(--aka-700); /* 削除ボタンの塗り */
+  --danger-fill-hover: var(--aka-800);
+  --on-danger-fill: var(--shiro);
+
+  /* 成功（評価の緑とは分ける。基調の濃い藍と同じ色。文字とアイコンで伝える） */
+  --success-text: var(--ai-800);
+
+  /* デモ表示モード */
+  --demo-banner-bg: var(--ki-400);
+  --demo-banner-text: var(--ki-950);
+  --demo-field-bg: var(--ki-50); /* ログイン画面の「デモデータを参照する」の欄 */
+  --demo-field-line: var(--ki-700);
+  --demo-field-text: var(--ki-950);
+  --demo-field-icon: var(--ki-700);
+
+  /* 評価（評価の表示にだけ使う。成功・監査ログの印などに流用しない） */
+  --rating-good: var(--hyoka-good);
+  --rating-normal: var(--hyoka-normal);
+  --rating-bad: var(--hyoka-bad);
+  --rating-good-badge-bg: var(--hyoka-good-50);
+  --rating-good-badge-text: var(--hyoka-good-800);
+  --rating-normal-badge-bg: var(--hyoka-normal-50);
+  --rating-normal-badge-text: var(--hyoka-normal-800);
+  --rating-bad-badge-bg: var(--hyoka-bad-50);
+  --rating-bad-badge-text: var(--hyoka-bad-800);
+
+  /* 監査ログ（変更履歴）の印。いつも文字と一緒に出す */
+  --audit-create: var(--ai-800); /* 登録＝基調の濃い藍 */
+  --audit-update: var(--sumi-600); /* 編集＝補足の灰 */
+  --audit-delete: var(--aka-700); /* 削除＝危険の文字 */
+
+  /* 地図 */
+  --map-school: var(--ai-700); /* 小学校のピン */
+  --map-current: var(--ao-600); /* 現在地 */
+  --map-current-heading-fill: var(--ao-600-30); /* 現在地の向き */
+  --map-current-heading-line: var(--ao-600-50);
+  --map-no-history-fill: var(--shiro); /* 履歴なしのピン（中抜き） */
+  --map-no-history-line: var(--hai-500); /* 白に対して 3:1 以上 */
+  --map-mark-edge: var(--shiro); /* ピン・メモの印の縁 */
+  --map-mark-inner: var(--shiro); /* ピンの中の丸 */
+  --map-label-bg: var(--shiro-92); /* ピンの名前のラベルの地 */
+  --map-note-yellow: var(--memo-yellow);
+  --map-note-purple: var(--memo-purple);
+  --map-note-orange: var(--memo-orange);
+  --map-note-blue: var(--memo-blue);
+  --map-note-cyan: var(--memo-cyan);
+
+  /* 影・暗幕 */
+  --elevation-card: 0 1px 2px 0 var(--kage-05);
+  --elevation-overlay: 0 10px 15px -3px var(--kage-10), 0 4px 6px -4px var(--kage-10);
+  --elevation-map-label: 0 1px 3px var(--kage-25);
+  --elevation-map-mark: 0 1px 4px var(--kage-45);
+  --scrim: var(--kage-50); /* ダイアログの暗幕 */
+
+  /* 角（3段）。Tailwind では rounded-control・rounded-card・rounded-full */
+  --shape-control: var(--corner-8); /* 部品 */
+  --shape-card: var(--corner-12); /* カード */
+  --shape-round: var(--corner-round); /* 丸 */
 }
 
-.dark {
-  --background: oklch(0.22 0.01 260);
-  --foreground: oklch(0.95 0.005 260);
-
-  --card: oklch(0.27 0.012 260);
-  --card-foreground: oklch(0.95 0.005 260);
-
-  --popover: oklch(0.27 0.012 260);
-  --popover-foreground: oklch(0.95 0.005 260);
-
-  --primary: oklch(0.62 0.16 255);
-  --primary-foreground: oklch(0.18 0.02 260);
-
-  --secondary: oklch(0.33 0.02 260);
-  --secondary-foreground: oklch(0.95 0.005 260);
-
-  --muted: oklch(0.3 0.015 260);
-  --muted-foreground: oklch(0.7 0.02 260);
-
-  --accent: oklch(0.36 0.04 260);
-  --accent-foreground: oklch(0.95 0.005 260);
-
-  --destructive: oklch(0.62 0.2 25);
-  --destructive-foreground: oklch(0.95 0.005 260);
-
-  --border: oklch(0.4 0.02 260 / 50%);
-  --input: oklch(0.4 0.02 260 / 50%);
-  --ring: oklch(0.62 0.16 255);
-
-  --rating-good: oklch(0.66 0.16 150);
-  --rating-normal: oklch(0.6 0.01 260);
-  --rating-bad: oklch(0.62 0.2 25);
+/*
+ * Tailwind の既定の色・角・影は消し、下の名前だけを使えるようにする
+ * （Tailwind の色の名前・既定の角・影のクラスが書けなくなる＝値の直書きを防ぐ）。
+ * transparent・current・inherit・rounded-full は Tailwind の固定のクラスなので残る。
+ */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-rating-good: var(--rating-good);
-  --color-rating-normal: var(--rating-normal);
-  --color-rating-bad: var(--rating-bad);
+  /* 色（shadcn の名前は意味の名前の別名） */
+  --color-background: var(--surface-page);
+  --color-foreground: var(--text-body);
+  --color-card: var(--surface-card);
+  --color-card-foreground: var(--text-body);
+  --color-popover: var(--surface-card);
+  --color-popover-foreground: var(--text-body);
+  --color-primary: var(--brand);
+  --color-primary-foreground: var(--on-brand);
+  --color-primary-hover: var(--brand-hover);
+  --color-primary-soft: var(--brand-soft);
+  --color-primary-soft-foreground: var(--on-brand-soft);
+  --color-secondary: var(--surface-muted);
+  --color-secondary-foreground: var(--text-body);
+  --color-secondary-hover: var(--surface-muted-hover);
+  --color-muted: var(--surface-muted);
+  --color-muted-foreground: var(--text-muted);
+  --color-accent: var(--brand-soft);
+  --color-accent-foreground: var(--on-brand-soft);
+  --color-destructive: var(--danger-fill);
+  --color-destructive-foreground: var(--on-danger-fill);
+  --color-destructive-hover: var(--danger-fill-hover);
+  --color-danger: var(--danger-text);
+  --color-success: var(--success-text);
+  --color-border: var(--line-decor);
+  --color-input: var(--line-control);
+  --color-ring: var(--focus-ring);
+  --color-deleted: var(--surface-deleted);
+  --color-scrim: var(--scrim);
+  --color-demo-banner: var(--demo-banner-bg);
+  --color-demo-banner-foreground: var(--demo-banner-text);
+  --color-demo-field: var(--demo-field-bg);
+  --color-demo-field-border: var(--demo-field-line);
+  --color-demo-field-foreground: var(--demo-field-text);
+  --color-demo-field-icon: var(--demo-field-icon);
+  --color-rating-good-badge: var(--rating-good-badge-bg);
+  --color-rating-good-badge-foreground: var(--rating-good-badge-text);
+  --color-rating-normal-badge: var(--rating-normal-badge-bg);
+  --color-rating-normal-badge-foreground: var(--rating-normal-badge-text);
+  --color-rating-bad-badge: var(--rating-bad-badge-bg);
+  --color-rating-bad-badge-foreground: var(--rating-bad-badge-text);
+  --color-audit-create: var(--audit-create);
+  --color-audit-update: var(--audit-update);
+  --color-audit-delete: var(--audit-delete);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* 角は3段: 部品（rounded-control）・カード（rounded-card）・丸（rounded-full） */
+  --radius-control: var(--shape-control);
+  --radius-card: var(--shape-card);
 
-  --font-sans: var(--font-mplus-rounded), ui-sans-serif, system-ui, sans-serif;
+  /* 影は2段 */
+  --shadow-card: var(--elevation-card);
+  --shadow-overlay: var(--elevation-overlay);
+
+  /* 書体（中身は下の body の --font-body） */
+  --font-sans: var(--font-body);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border outline-ring;
   }
   body {
+    /*
+     * 書体: BIZ UDPゴシック（layout.tsx で読み込み、body に --font-biz-udp が付く）→ 日本語の標準書体。
+     * --font-biz-udp が body に付くので、:root ではなく body で組み立てる。
+     */
+    --font-body: var(--font-biz-udp), "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", YuGothic,
+      "Noto Sans JP", Meiryo, sans-serif;
     @apply bg-background text-foreground;
   }
 }
@@ -156,19 +277,29 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 
 /* ── Leaflet 地図まわりの調整 ─────────────────────────────────────────── */
+/*
+ * Leaflet は地図の中の書体を自分で決める（.leaflet-container）。チラトラが自前で装飾する
+ * ラベル・吹き出しだけアプリの書体に戻す（拡大縮小ボタン・著作権表示は Leaflet の既定のまま）。
+ */
+.leaflet-tooltip.flyer-label,
+.flyer-history,
+.flyer-school-popup,
+.leaflet-tooltip.flyer-note-tip {
+  font-family: var(--font-body);
+}
 .flyer-pin {
   background: transparent;
   border: none;
 }
 .leaflet-tooltip.flyer-label {
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--map-label-bg);
   border: none;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: var(--shape-control);
+  box-shadow: var(--elevation-map-label);
   padding: 1px 6px;
   font-size: 11px;
   font-weight: 700;
-  color: #111;
+  color: var(--text-body);
   white-space: nowrap;
 }
 .leaflet-tooltip.flyer-label::before {
@@ -179,7 +310,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .flyer-history {
   min-width: 180px;
   font-size: 12px;
-  color: #111;
+  color: var(--text-body);
   cursor: pointer;
 }
 .flyer-history:hover .flyer-history-hint {
@@ -190,7 +321,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   margin-bottom: 4px;
 }
 .flyer-history-empty {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 .flyer-history-list {
   list-style: none;
@@ -212,18 +343,18 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .flyer-history-dot {
   width: 10px;
   height: 10px;
-  border-radius: 9999px;
+  border-radius: var(--shape-round);
   flex-shrink: 0;
 }
 .flyer-history-more {
-  color: #6b7280;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 .flyer-history-hint {
   margin-top: 6px;
   padding-top: 4px;
-  border-top: 1px solid #e5e7eb;
-  color: var(--primary);
+  border-top: 1px solid var(--line-decor);
+  color: var(--brand);
   font-weight: 700;
 }
 
@@ -233,7 +364,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border: none;
 }
 
-/* 小学校の青ピン */
+/* 小学校のピン */
 .flyer-school {
   background: transparent;
   border: none;
@@ -241,12 +372,12 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .flyer-school-popup {
   min-width: 140px;
   font-size: 13px;
-  color: #111;
+  color: var(--text-body);
 }
 .flyer-school-popup a {
   display: inline-block;
   margin-top: 4px;
-  color: var(--primary);
+  color: var(--brand);
   font-weight: 700;
   text-decoration: none;
 }
@@ -254,7 +385,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   text-decoration: underline;
 }
 .flyer-school-nolink {
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 /* マップメモのホバー吹き出し */
@@ -265,6 +396,6 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .leaflet-tooltip.flyer-note-tip {
   max-width: 220px;
   font-size: 12px;
-  color: #111;
+  color: var(--text-body);
   white-space: normal;
 }

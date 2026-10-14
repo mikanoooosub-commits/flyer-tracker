@@ -9,9 +9,9 @@ import type { SchoolSpotsView, SpotRow, SpotStatus } from "@/lib/cooldown";
 // ラベルの色は赤系・緑系を使わない（地図の 緑=良好／赤=非推奨 と読み違えないため。WO-003 S-2）。
 // 白黒でも文字だけで判別できるよう、状態は必ず文字で出す。
 const LABELS: Record<Exclude<SpotStatus["kind"], "none">, { text: string; className: string }> = {
-  cooldown: { text: "クールダウン中", className: "border border-primary/40 bg-primary/10 text-primary" },
+  cooldown: { text: "クールダウン中", className: "border border-primary bg-primary-soft text-primary-soft-foreground" },
   available: { text: "配布可", className: "bg-muted text-muted-foreground" },
-  excluded: { text: "非推奨（対象外）", className: "border border-muted-foreground/50 text-muted-foreground" },
+  excluded: { text: "非推奨（対象外）", className: "border border-muted-foreground text-muted-foreground" },
 };
 
 /** 学校カードの中の「立ち位置」欄。最初は畳んでおき、見出しのタップで開閉する（開閉の状態は保存しない） */
@@ -51,7 +51,7 @@ export function SchoolSpots({ view }: { view: SchoolSpotsView }) {
 
 function SpotList({ rows }: { rows: SpotRow[] }) {
   return (
-    <ul className="flex flex-col divide-y divide-border/60 rounded-lg border border-border/60">
+    <ul className="flex flex-col divide-y divide-border rounded-control border border-border">
       {rows.map((row) => (
         <SpotItem key={row.id} row={row} />
       ))}

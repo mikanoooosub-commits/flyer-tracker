@@ -13,18 +13,18 @@ type Props = {
 
 export function AppHeader({ title, subtitle, backHref, action }: Props) {
   return (
-    <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-sm">
+    <header className="sticky top-0 z-20 border-b border-border bg-card">
       <div className="mx-auto flex max-w-md items-center gap-2 px-4 py-3.5 md:max-w-3xl">
         {backHref ? (
           <Link
             href={backHref}
-            className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary"
+            className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary"
             aria-label="戻る"
           >
             <ChevronLeft className="size-5" />
           </Link>
         ) : (
-          <span className="flex size-9 items-center justify-center rounded-full bg-primary/15 text-primary">
+          <span className="flex size-9 items-center justify-center rounded-full bg-primary-soft text-primary">
             <MapPin className="size-5" />
           </span>
         )}

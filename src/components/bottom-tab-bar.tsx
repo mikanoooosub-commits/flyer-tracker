@@ -16,7 +16,7 @@ export function BottomTabBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border/60 bg-background/90 backdrop-blur-sm">
+    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card">
       <div className="mx-auto flex max-w-md items-stretch justify-around md:max-w-3xl">
         {TABS.map((tab) => {
           const active = tab.match(pathname);

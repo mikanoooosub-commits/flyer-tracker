@@ -49,7 +49,7 @@ export function CooldownSetting({ days }: { days: number }) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 rounded-xl border border-border/60 bg-card px-4 py-2 shadow-sm">
+      <div className="flex items-center justify-between gap-2 rounded-card border border-border bg-card px-4 py-2 shadow-card">
         <span className="font-bold">クールダウン: {days}日</span>
         <Button
           variant="outline"
@@ -79,7 +79,7 @@ export function CooldownSetting({ days }: { days: number }) {
               onChange={(e) => setValue(e.target.value)}
             />
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p className="text-sm text-danger">{error}</p>}
           <div className="flex gap-2">
             <Button
               variant="outline"

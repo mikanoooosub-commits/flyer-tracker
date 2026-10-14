@@ -5,11 +5,10 @@ import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from "react-lea
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
+import { pinSvg } from "@/components/map/pin-glyph";
+
 const pickIcon = L.divIcon({
-  html: `<svg width="30" height="40" viewBox="0 0 30 40" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 25 15 25s15-15 15-25C30 6.7 23.3 0 15 0z" fill="var(--primary)" stroke="white" stroke-width="2"/>
-    <circle cx="15" cy="15" r="5.5" fill="white"/>
-  </svg>`,
+  html: pinSvg("picked", 30, 40),
   className: "flyer-pin",
   iconSize: [30, 40],
   iconAnchor: [15, 40],

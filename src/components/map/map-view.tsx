@@ -34,7 +34,9 @@ import {
   deleteMapNoteAction,
 } from "@/lib/data/actions";
 import { cn } from "@/lib/utils";
-import { noteColor, type Rating, type School, type VisitWithRelations, type MapNote } from "@/lib/types";
+import { type Rating, type School, type VisitWithRelations, type MapNote } from "@/lib/types";
+import { noteColorVar } from "@/lib/note-color";
+import { PIN_PATH, PIN_STYLE, type PinKind } from "@/components/map/pin-glyph";
 import type { LocationWithSchool } from "@/lib/data/queries";
 
 const FlyerMap = dynamic(() => import("@/components/map/flyer-map"), {
@@ -139,11 +141,11 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
       {/* 凡例 */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-2 text-xs">
         <span className="font-bold text-muted-foreground">評価:</span>
-        <LegendDot color="var(--rating-good)" label="良好" />
-        <LegendDot color="var(--rating-normal)" label="普通" />
-        <LegendDot color="var(--rating-bad)" label="非推奨" />
-        <LegendDot color="#9ca3af" label="履歴なし" />
-        <LegendDot color="#2563eb" label="小学校" />
+        <LegendPin kind="good" label="良好" />
+        <LegendPin kind="normal" label="普通" />
+        <LegendPin kind="bad" label="非推奨" />
+        <LegendPin kind="none" label="履歴なし" />
+        <LegendPin kind="school" label="小学校" />
       </div>
 
       {/* 現在地トラッキング */}
@@ -158,7 +160,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
           現在地トラッキング
         </label>
         {track.error ? (
-          <span className="text-xs text-destructive">{track.error}</span>
+          <span className="text-xs text-danger">{track.error}</span>
         ) : track.tracking ? (
           <span className="text-xs text-muted-foreground">
             {track.position
@@ -172,7 +174,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
 
       {/* 配置モードのバナー */}
       {placeId && (
-        <div className="mx-4 mb-2 flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-sm">
+        <div className="mx-4 mb-2 flex items-center gap-2 rounded-card border border-primary bg-primary-soft px-3 py-2 text-sm">
           <Crosshair className="size-4 shrink-0 text-primary" />
           <span className="flex-1">地図をタップして、この配布場所の位置を指定してください</span>
           <Button variant="ghost" size="sm" onClick={() => router.replace("/")}>
@@ -240,7 +242,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
             <DialogTitle className="flex items-center gap-1.5">
               <span
                 className="inline-block size-3.5 rounded-full"
-                style={{ background: editingNote ? noteColor(editingNote.color) : undefined }}
+                style={{ background: editingNote ? noteColorVar(editingNote.color) : undefined }}
               />
               マップメモを編集
             </DialogTitle>
@@ -271,10 +273,16 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+/** 凡例。地図のピンと同じ形・同じ色の小さなピンで描く（WO-007 E-7） */
+function LegendPin({ kind, label }: { kind: PinKind; label: string }) {
+  const s = PIN_STYLE[kind];
   return (
     <span className="flex items-center gap-1">
-      <span className="inline-block size-3 rounded-full" style={{ background: color }} />
+      <svg width="12" height="16" viewBox="0 0 30 40" overflow="visible" aria-hidden="true">
+        {/* 縁の太さは画面上の px（ピンを小さく描いても細らせない）。履歴なしの中抜きの枠は地図と同じ 2.5px（S-6） */}
+        <path d={PIN_PATH} fill={s.fill} stroke={s.edge} strokeWidth={s.edgeWidth} vectorEffect="non-scaling-stroke" />
+        {s.inner && <circle cx="15" cy="15" r="5.5" fill={s.inner} />}
+      </svg>
       {label}
     </span>
   );
@@ -362,10 +370,10 @@ function NewLocationDialog({
             type="button"
             onClick={() => setMode("location")}
             className={cn(
-              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
               mode === "location"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground"
+                ? "border-primary bg-primary-soft text-primary-soft-foreground"
+                : "border-input bg-card text-muted-foreground"
             )}
           >
             配布場所
@@ -374,10 +382,10 @@ function NewLocationDialog({
             type="button"
             onClick={() => setMode("note")}
             className={cn(
-              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
               mode === "note"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground"
+                ? "border-primary bg-primary-soft text-primary-soft-foreground"
+                : "border-input bg-card text-muted-foreground"
             )}
           >
             マップメモ
@@ -467,7 +475,7 @@ function NewLocationBody({
           緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
         </p>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       <Button onClick={handleCreate} disabled={pending}>
         {pending ? "登録中…" : "この位置で配布場所を登録"}
       </Button>

@@ -91,7 +91,7 @@ export function SchoolManager({
       {cooldownDays !== null ? (
         <CooldownSetting days={cooldownDays} />
       ) : (
-        <p className="px-1 text-sm text-destructive">{COOLDOWN_DAYS_LOAD_ERROR}</p>
+        <p className="px-1 text-sm text-danger">{COOLDOWN_DAYS_LOAD_ERROR}</p>
       )}
 
       <Card>
@@ -159,10 +159,10 @@ export function SchoolManager({
         </CardContent>
       </Card>
 
-      {error && <p className="px-1 text-sm text-destructive">{error}</p>}
+      {error && <p className="px-1 text-sm text-danger">{error}</p>}
 
       {spotsLoadFailed && (
-        <p className="px-1 text-sm text-destructive">
+        <p className="px-1 text-sm text-danger">
           配布実績を読み込めなかったため、クールダウンを表示できません
         </p>
       )}
@@ -181,7 +181,7 @@ export function SchoolManager({
             return (
               <li
                 key={s.id}
-                className="flex flex-col gap-2 rounded-xl border border-border/60 bg-card px-4 py-3 shadow-sm"
+                className="flex flex-col gap-2 rounded-card border border-border bg-card px-4 py-3 shadow-card"
               >
                 <div className="flex items-center gap-2">
                   <SchoolIcon className="size-4 shrink-0 text-primary" />
@@ -219,7 +219,7 @@ export function SchoolManager({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="shrink-0 text-destructive"
+                    className="shrink-0 text-danger"
                     aria-label="削除"
                     disabled={pending}
                     onClick={() => setDeleteTarget(s)}
@@ -358,7 +358,7 @@ function SchoolEditBody({
           緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
         </p>
       </div>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={onClose} disabled={pending}>
           キャンセル

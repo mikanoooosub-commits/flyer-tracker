@@ -16,9 +16,10 @@ import { RATING_META, type Visit, type VisitAction, type VisitLogWithUser } from
 import { formatDate, formatDateTime, formatTime } from "@/lib/format";
 
 const ACTION_META: Record<VisitAction, { label: string; icon: typeof Plus; className: string }> = {
-  create: { label: "登録", icon: Plus, className: "text-rating-good" },
-  update: { label: "編集", icon: Pencil, className: "text-primary" },
-  delete: { label: "削除", icon: Trash2, className: "text-destructive" },
+  // 印の色は評価の色を使わない: 登録＝基調の濃い藍・編集＝補足の灰・削除＝危険の文字（WO-007 S-2）
+  create: { label: "登録", icon: Plus, className: "text-audit-create" },
+  update: { label: "編集", icon: Pencil, className: "text-audit-update" },
+  delete: { label: "削除", icon: Trash2, className: "text-audit-delete" },
 };
 
 const FIELD_LABELS: { key: keyof Visit; label: string; fmt?: (v: unknown) => string }[] = [
@@ -89,7 +90,7 @@ export function VisitLogDialog({ visitId }: { visitId: string }) {
               return (
                 <li
                   key={log.id}
-                  className="rounded-xl border border-border/60 bg-card p-3 text-sm"
+                  className="rounded-card border border-border bg-card p-3 text-sm"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className={`inline-flex items-center gap-1.5 font-bold ${meta.className}`}>

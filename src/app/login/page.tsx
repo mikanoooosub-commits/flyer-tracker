@@ -160,7 +160,7 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center px-6 py-10">
       <div className="mb-6 flex flex-col items-center gap-3 text-center">
-        <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+        <span className="flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
           <MapPin className="size-7" />
         </span>
         <div>
@@ -213,7 +213,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              {pwStatus === "error" && <p className="text-sm text-destructive">{pwMessage}</p>}
+              {pwStatus === "error" && <p className="text-sm text-danger">{pwMessage}</p>}
               <Button type="submit" size="lg" disabled={pwStatus === "loading"}>
                 {pwStatus === "loading" ? "ログイン中…" : "ログイン"}
               </Button>
@@ -227,7 +227,7 @@ export default function LoginPage() {
             </form>
           ) : magicStatus === "sent" ? (
             <div className="flex flex-col items-center gap-3 py-4 text-center">
-              <CheckCircle2 className="size-10 text-rating-good" />
+              <CheckCircle2 className="size-10 text-success" />
               <p className="text-sm font-bold">ログインリンクを送信しました</p>
               <p className="text-sm text-muted-foreground">
                 <span className="font-medium text-foreground">{magicEmail}</span> 宛のメールを開き、
@@ -254,7 +254,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              {magicStatus === "error" && <p className="text-sm text-destructive">{magicMessage}</p>}
+              {magicStatus === "error" && <p className="text-sm text-danger">{magicMessage}</p>}
               <Button type="submit" size="lg" disabled={magicStatus === "sending"}>
                 {magicStatus === "sending" ? "送信中…" : "ログインリンクを送る"}
               </Button>
@@ -282,25 +282,26 @@ export default function LoginPage() {
           size="lg"
           onClick={handleGoogleLogin}
           disabled={googleStatus === "redirecting"}
-          className="w-full border border-[#747775] bg-white text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F]"
+          // Google のボタンの色は Google のブランドの決まりによる例外（WO-007 S-9）
+          className="w-full border border-[#747775] bg-[#FFFFFF] text-[#1F1F1F] hover:bg-[#F2F2F2] hover:text-[#1F1F1F]"
         >
           <GoogleLogo className="size-5" />
           {googleStatus === "redirecting" ? "Google に移動中…" : "Google でログイン"}
         </Button>
-        {googleError && <p className="text-sm text-destructive">{googleError}</p>}
+        {googleError && <p className="text-sm text-danger">{googleError}</p>}
       </div>
 
       {/* デモ表示モード: DB の参照先を demo スキーマに切り替える（本番データは表示されない） */}
-      <label className="mt-4 flex w-full cursor-pointer items-start gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 px-4 py-3">
+      <label className="mt-4 flex w-full cursor-pointer items-start gap-3 rounded-card border border-demo-field-border bg-demo-field px-4 py-3">
         <input
           type="checkbox"
           checked={useDemo}
           onChange={(e) => handleDemoToggle(e.target.checked)}
-          className="mt-0.5 size-4 shrink-0 accent-amber-500"
+          className="mt-0.5 size-4 shrink-0 accent-demo-field-icon"
         />
         <span className="flex flex-col gap-0.5">
-          <span className="flex items-center gap-1.5 text-sm font-bold">
-            <FlaskConical className="size-4 text-amber-600" />
+          <span className="flex items-center gap-1.5 text-sm font-bold text-demo-field-foreground">
+            <FlaskConical className="size-4 text-demo-field-icon" />
             デモデータを参照する
           </span>
           <span className="text-xs text-muted-foreground">

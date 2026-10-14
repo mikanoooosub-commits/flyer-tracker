@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LocationPicker } from "@/components/map/location-picker";
-import { NOTE_PRESETS, type ActionResult } from "@/lib/types";
+import type { ActionResult } from "@/lib/types";
+import { NOTE_COLOR_OPTIONS, noteColorVar, toNoteColor, type NoteColor } from "@/lib/note-color";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_CENTER = { lat: 35.6812, lng: 139.7671 }; // 東京駅
@@ -34,22 +35,22 @@ function ColorPicker({
   value,
   onChange,
 }: {
-  value: string;
-  onChange: (color: string) => void;
+  value: NoteColor;
+  onChange: (color: NoteColor) => void;
 }) {
   return (
     <div className="flex flex-wrap gap-2">
-      {NOTE_PRESETS.map((p) => (
+      {NOTE_COLOR_OPTIONS.map((p) => (
         <button
           key={p.value}
           type="button"
           onClick={() => onChange(p.value)}
           className={cn(
-            "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-bold transition-colors",
+            "flex items-center gap-1.5 rounded-control border-2 px-3 py-1 text-xs font-bold transition-colors",
             value === p.value ? "border-foreground" : "border-transparent bg-muted"
           )}
         >
-          <span className="inline-block size-3 rounded-full" style={{ background: p.color }} />
+          <span className="inline-block size-3 rounded-full" style={{ background: noteColorVar(p.value) }} />
           {p.label}
         </button>
       ))}
@@ -58,7 +59,9 @@ function ColorPicker({
 }
 
 export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, onDelete }: Props) {
-  const [color, setColor] = useState(initial?.color ?? NOTE_PRESETS[0].value);
+  // 以前の赤・緑（red・green）は橙・水色、空・想定外の値は黄が選ばれた状態で開く（WO-007 E-1・E-2）。
+  // 色に触らずに保存しても、選ばれている色の値で保存される。
+  const [color, setColor] = useState<NoteColor>(toNoteColor(initial?.color));
   const [label, setLabel] = useState(initial?.label ?? "");
   const [memo, setMemo] = useState(initial?.memo ?? "");
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(
@@ -134,14 +137,14 @@ export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, 
         )}
       </div>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
 
       <div className="flex gap-2">
         {onDelete && (
           <Button
             type="button"
             variant="outline"
-            className="gap-1.5 text-destructive"
+            className="gap-1.5 text-danger"
             onClick={handleDelete}
             disabled={pending}
           >

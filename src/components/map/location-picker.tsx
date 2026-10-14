@@ -150,7 +150,7 @@ export function LocationPicker({
           </div>
 
           {results.length > 0 && (
-            <ul className="max-h-40 overflow-y-auto rounded-lg border border-border/60 bg-card text-sm">
+            <ul className="max-h-40 overflow-y-auto rounded-control border border-border bg-card text-sm">
               {results.map((r) => (
                 <li key={r.place_id}>
                   <button
@@ -190,7 +190,7 @@ export function LocationPicker({
           {locating ? "取得中…" : "現在地"}
         </Button>
         {geoError ? (
-          <span className="text-xs text-destructive">{geoError}</span>
+          <span className="text-xs text-danger">{geoError}</span>
         ) : accuracy != null ? (
           <span className="text-xs text-muted-foreground">
             精度 ±{Math.round(accuracy)}m・地図で微調整できます
@@ -202,7 +202,7 @@ export function LocationPicker({
         )}
       </div>
 
-      <div className={cn("h-56 w-full overflow-hidden rounded-xl border-2 border-input", className)}>
+      <div className={cn("h-56 w-full overflow-hidden rounded-card border-2 border-input", className)}>
         <LocationPickerMap
           value={value ? [value.lat, value.lng] : null}
           center={[mapCenter.lat, mapCenter.lng]}

@@ -202,7 +202,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
       {visits.length > 0 && (
         <div className="flex justify-end">
           <Button variant="outline" size="sm" className="gap-1.5" onClick={handleCopy}>
-            {copied ? <Check className="size-4 text-rating-good" /> : <Copy className="size-4" />}
+            {copied ? <Check className="size-4 text-success" /> : <Copy className="size-4" />}
             {copied ? "コピーしました" : "履歴をコピー"}
           </Button>
         </div>
@@ -227,10 +227,10 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
           </div>
 
           {/* PC: テーブル表示 */}
-          <div className="hidden overflow-x-auto rounded-xl border border-border/60 bg-card md:block">
+          <div className="hidden overflow-x-auto rounded-card border border-border bg-card md:block">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50 text-left text-xs text-muted-foreground">
+                <tr className="border-b border-border bg-muted text-left text-xs text-muted-foreground">
                   <th className="px-2 py-2 font-bold">日時</th>
                   <th className="px-2 py-2 font-bold">対象</th>
                   <th className="px-2 py-2 text-right font-bold">配布数</th>
@@ -254,7 +254,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
 
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border/60 bg-card px-3 py-2.5 text-center shadow-sm">
+    <div className="rounded-card border border-border bg-card px-3 py-2.5 text-center shadow-card">
       <p className="text-[11px] text-muted-foreground">{label}</p>
       <p className="text-sm font-bold">{value}</p>
     </div>
@@ -278,7 +278,7 @@ function LocationBanner({
   const hasCoords = location.lat != null && location.lng != null;
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-primary/40 bg-primary/10 px-3 py-2.5">
+    <div className="flex flex-col gap-2 rounded-card border border-primary bg-primary-soft px-3 py-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="flex items-center gap-1.5 text-sm font-bold">

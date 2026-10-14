@@ -5,9 +5,22 @@ export const RATING_META: Record<
   Rating,
   { label: string; colorVar: string; badgeClass: string }
 > = {
-  good: { label: "良好", colorVar: "var(--rating-good)", badgeClass: "bg-rating-good text-white" },
-  normal: { label: "普通", colorVar: "var(--rating-normal)", badgeClass: "bg-rating-normal text-white" },
-  bad: { label: "非推奨", colorVar: "var(--rating-bad)", badgeClass: "bg-rating-bad text-white" },
+  // colorVar はピン・凡例・吹き出しの点の色、badgeClass は評価のバッジ（淡い地＋濃い文字。WO-007 S-2）
+  good: {
+    label: "良好",
+    colorVar: "var(--rating-good)",
+    badgeClass: "bg-rating-good-badge text-rating-good-badge-foreground",
+  },
+  normal: {
+    label: "普通",
+    colorVar: "var(--rating-normal)",
+    badgeClass: "bg-rating-normal-badge text-rating-normal-badge-foreground",
+  },
+  bad: {
+    label: "非推奨",
+    colorVar: "var(--rating-bad)",
+    badgeClass: "bg-rating-bad-badge text-rating-bad-badge-foreground",
+  },
 };
 
 export const RATING_ORDER: Rating[] = ["good", "normal", "bad"];
@@ -104,22 +117,7 @@ export type MapNote = {
   updated_at: string;
 };
 
-/** メモの色プリセット（色自体に意味は持たせない。用途は見出し・メモで自由に） */
-export const NOTE_PRESETS: { value: string; label: string; color: string }[] = [
-  { value: "yellow", label: "黄", color: "#eab308" },
-  { value: "purple", label: "紫", color: "#8b5cf6" },
-  { value: "red", label: "赤", color: "#ef4444" },
-  { value: "blue", label: "青", color: "#3b82f6" },
-  { value: "green", label: "緑", color: "#22c55e" },
-];
-
-export const NOTE_COLOR_MAP: Record<string, string> = Object.fromEntries(
-  NOTE_PRESETS.map((p) => [p.value, p.color])
-);
-
-export function noteColor(token: string): string {
-  return NOTE_COLOR_MAP[token] ?? "#eab308";
-}
+// メモの色の選択肢と読み替えは src/lib/note-color.ts（WO-007 S-7）
 
 // ── フォーム入力・アクション結果 ─────────────────────────────────────────────
 export type VisitInput = {

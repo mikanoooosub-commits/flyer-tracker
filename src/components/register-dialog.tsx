@@ -52,10 +52,10 @@ export function RegisterDialog({
             type="button"
             onClick={() => setRegisterType("visit")}
             className={cn(
-              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
               registerType === "visit"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground"
+                ? "border-primary bg-primary-soft text-primary-soft-foreground"
+                : "border-input bg-card text-muted-foreground"
             )}
           >
             配布実績
@@ -64,10 +64,10 @@ export function RegisterDialog({
             type="button"
             onClick={() => setRegisterType("note")}
             className={cn(
-              "flex-1 rounded-lg border-2 py-1.5 text-sm font-bold transition-colors",
+              "flex-1 rounded-control border-2 py-1.5 text-sm font-bold transition-colors",
               registerType === "note"
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border bg-card text-muted-foreground"
+                ? "border-primary bg-primary-soft text-primary-soft-foreground"
+                : "border-input bg-card text-muted-foreground"
             )}
           >
             マップメモ
