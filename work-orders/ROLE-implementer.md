@@ -24,6 +24,10 @@ PM が発行し、オーナーが仕様を承認した WO に従ってチラト�
      本番データ・実在地名を写さない（LP 素材に流用するため。CLAUDE.md の方針）。
    - 撮った画面を S-n と見比べ、差分があれば**自分で直して撮り直す**。見比べた結果（S-n ごとに一致／直した内容）を report に書く。
    - 保存先: `docs/screenshots/WO-nnn/<画面>-<mobile|pc>.png`。
+   - 保存の方法（WO-007 で使った方法）: 内蔵ブラウザで `screenshot` を撮ると、画像が
+     `~/.claude/projects/<このプロジェクト>/<このスレのセッションID>/tool-results/mcp-Claude_Browser-blob-*.jpg` に残る。
+     いちばん新しいファイルを PowerShell で PNG に変えて保存する:
+     `Add-Type -AssemblyName System.Drawing; $i=[System.Drawing.Image]::FromFile("<jpg>"); $i.Save("<保存先.png>",[System.Drawing.Imaging.ImageFormat]::Png); $i.Dispose()`
    - 画面をファイルとして保存できなかった場合は、無理に別の道具を入れず、その旨を report と中継文の「判断してほしい点」に書く。
 6. `WO-nnn-report.md` に報告を書く（WO の「報告」欄の項目）。
 7. **コードレビューを起動する（軽量コースでも省略しない）**。サブエージェントを**モデル Opus** で起動し、次の文を**そのまま**渡す。
