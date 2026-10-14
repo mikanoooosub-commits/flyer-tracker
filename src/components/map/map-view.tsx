@@ -139,7 +139,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
   return (
     <div className="flex flex-col">
       {/* 凡例 */}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-2 text-xs">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 pb-2 text-sm">
         <span className="font-bold text-muted-foreground">評価:</span>
         <LegendPin kind="good" label="良好" />
         <LegendPin kind="normal" label="普通" />
@@ -150,7 +150,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
 
       {/* 現在地トラッキング */}
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pb-2 text-sm">
-        <label className="flex min-h-11 items-center gap-2 font-medium">
+        <label className="flex min-h-11 items-center gap-2">
           <input
             type="checkbox"
             className="size-4 accent-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
@@ -160,9 +160,9 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
           現在地トラッキング
         </label>
         {track.error ? (
-          <span className="text-xs text-danger">{track.error}</span>
+          <span className="text-sm text-danger">{track.error}</span>
         ) : track.tracking ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {track.position
               ? `追従中（精度 ±${Math.round(track.position.accuracy)}m${
                   track.heading == null ? "・向きなし" : ""
@@ -204,7 +204,7 @@ export function MapView({ schools, locations, ratings, visits, notes }: Props) {
         />
       </div>
 
-      <p className="px-4 pt-2 text-center text-xs text-muted-foreground">
+      <p className="px-4 pt-2 text-center text-sm text-muted-foreground">
         {placeId
           ? "地図をタップして位置を指定してください。"
           : "ピンをクリックで一覧、カーソルで履歴。地図タップでその地点に配布場所・メモを登録できます。"}
@@ -322,7 +322,7 @@ function PlaceConfirmBody({
   return (
     <>
       <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（現在地・タップ・ドラッグで微調整）
       </p>
       <div className="flex gap-2">
@@ -471,7 +471,7 @@ function NewLocationBody({
       <div className="flex flex-col gap-2">
         <Label>位置（現在地・検索・タップ・ドラッグで調整）</Label>
         <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
         </p>
       </div>

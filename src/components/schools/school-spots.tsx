@@ -19,7 +19,7 @@ export function SchoolSpots({ view }: { view: SchoolSpotsView }) {
   const [open, setOpen] = useState(false);
 
   if (view.total === 0) {
-    return <p className="text-xs text-muted-foreground">立ち位置なし</p>;
+    return <p className="text-sm text-muted-foreground">立ち位置なし</p>;
   }
 
   return (
@@ -28,7 +28,7 @@ export function SchoolSpots({ view }: { view: SchoolSpotsView }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex min-h-11 items-center gap-1 self-start rounded-control text-xs font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="flex min-h-11 items-center gap-1 self-start rounded-control text-sm font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ChevronDown className={`size-3.5 transition-transform ${open ? "rotate-180" : ""}`} />
         立ち位置（{view.total}）
@@ -39,7 +39,7 @@ export function SchoolSpots({ view }: { view: SchoolSpotsView }) {
           {view.active.length > 0 && <SpotList rows={view.active} />}
           {view.excluded.length > 0 && (
             <>
-              <p className="pt-1 text-xs font-bold text-muted-foreground">非推奨（対象外）</p>
+              <p className="pt-1 text-sm font-bold text-muted-foreground">非推奨（対象外）</p>
               <SpotList rows={view.excluded} />
             </>
           )}
@@ -66,20 +66,20 @@ function SpotItem({ row }: { row: SpotRow }) {
   return (
     <li className="flex flex-col gap-0.5 px-3 py-2">
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-sm font-medium">{row.name}</span>
+        <span className="text-sm">{row.name}</span>
         {label && (
-          <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${label.className}`}>
+          <span className={`rounded-full px-2 py-0.5 text-sm font-bold ${label.className}`}>
             {label.text}
           </span>
         )}
       </div>
       {status.kind === "none" ? (
-        <p className="text-xs text-muted-foreground">配布実績なし</p>
+        <p className="text-sm text-muted-foreground">配布実績なし</p>
       ) : (
         <>
-          <p className="text-xs text-muted-foreground">{lastDateText(status)}</p>
+          <p className="text-sm text-muted-foreground tabular-nums">{lastDateText(status)}</p>
           {status.kind === "cooldown" && status.releaseDate && (
-            <p className="text-xs font-bold">{formatDate(status.releaseDate)} から配布可</p>
+            <p className="text-sm font-bold tabular-nums">{formatDate(status.releaseDate)} から配布可</p>
           )}
         </>
       )}

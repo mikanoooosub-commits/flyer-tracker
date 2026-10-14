@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 const LocationPickerMap = dynamic(() => import("@/components/map/location-picker-map"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
+    <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
       地図を読み込み中…
     </div>
   ),
@@ -164,7 +164,7 @@ export function LocationPicker({
             </ul>
           )}
           {searched && !searching && results.length === 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               該当なし。表記を変えて再検索するか、地図を直接タップしてください。
             </p>
           )}
@@ -189,13 +189,13 @@ export function LocationPicker({
           {locating ? "取得中…" : "現在地"}
         </Button>
         {geoError ? (
-          <span className="text-xs text-danger">{geoError}</span>
+          <span className="text-sm text-danger">{geoError}</span>
         ) : accuracy != null ? (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             精度 ±{Math.round(accuracy)}m・地図で微調整できます
           </span>
         ) : (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             現在地を取得してから位置を微調整できます
           </span>
         )}

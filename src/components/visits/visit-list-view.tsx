@@ -130,7 +130,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="f-from" className="text-xs">開始日</Label>
+              <Label htmlFor="f-from" className="text-sm">開始日</Label>
               <Input
                 id="f-from"
                 type="date"
@@ -139,7 +139,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="f-to" className="text-xs">終了日</Label>
+              <Label htmlFor="f-to" className="text-sm">終了日</Label>
               <Input
                 id="f-to"
                 type="date"
@@ -150,7 +150,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="f-school" className="text-xs">対象小学校</Label>
+            <Label htmlFor="f-school" className="text-sm">対象小学校</Label>
             <Select
               value={filters.schoolId || "all"}
               onValueChange={(v) => updateParam("school", v === "all" ? null : v)}
@@ -230,7 +230,7 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
           <div className="hidden overflow-x-auto rounded-card border border-border bg-card md:block">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted text-left text-xs text-muted-foreground">
+                <tr className="border-b border-border bg-muted text-left text-sm text-muted-foreground">
                   <th className="px-2 py-2 font-bold">日時</th>
                   <th className="px-2 py-2 font-bold">対象</th>
                   <th className="px-2 py-2 text-right font-bold">配布数</th>
@@ -255,8 +255,8 @@ export function VisitListView({ schools, locations, visits, filters, activeLocat
 function SummaryCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-card border border-border bg-card px-3 py-2.5 text-center shadow-card">
-      <p className="text-[11px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-bold">{value}</p>
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="text-sm font-bold tabular-nums">{value}</p>
     </div>
   );
 }
@@ -286,9 +286,9 @@ function LocationBanner({
             {location.school?.name ?? "小学校未設定"}
           </p>
           {location.spot?.trim() && (
-            <p className="pl-5.5 text-xs text-muted-foreground">{location.spot}</p>
+            <p className="pl-5.5 text-sm text-muted-foreground">{location.spot}</p>
           )}
-          <p className="pl-5.5 text-xs text-muted-foreground">この場所の配布履歴を表示中</p>
+          <p className="pl-5.5 text-sm text-muted-foreground">この場所の配布履歴を表示中</p>
         </div>
         <Button variant="ghost" size="sm" className="gap-1 text-muted-foreground" onClick={onClear}>
           <X className="size-3.5" />
@@ -381,7 +381,7 @@ function EditPositionBody({
   return (
     <>
       <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-      <p className="text-xs text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}（検索・タップ・ドラッグで調整）
       </p>
       <div className="flex gap-2">

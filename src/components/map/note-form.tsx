@@ -46,7 +46,7 @@ function ColorPicker({
           type="button"
           onClick={() => onChange(p.value)}
           className={cn(
-            "flex items-center gap-1.5 min-h-11 rounded-control border-2 px-3 py-1 text-xs font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            "flex items-center gap-1.5 min-h-11 rounded-control border-2 px-3 py-1 text-sm font-bold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             value === p.value ? "border-foreground" : "border-transparent bg-muted"
           )}
         >
@@ -98,7 +98,7 @@ export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, 
       <div className="flex flex-col gap-2">
         <Label>色</Label>
         <ColorPicker value={color} onChange={setColor} />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           色の使い分けは自由です（チーム内のルールでどうぞ）
         </p>
       </div>
@@ -131,7 +131,7 @@ export function NoteForm({ initial, submitLabel, onSubmit, onSuccess, onCancel, 
           onChange={(lat, lng) => setPos({ lat, lng })}
         />
         {pos && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
           </p>
         )}

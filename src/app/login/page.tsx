@@ -164,7 +164,7 @@ export default function LoginPage() {
           <MapPin className="size-7" />
         </span>
         <div>
-          <h1 className="text-xl font-extrabold">チラトラ</h1>
+          <h1 className="text-xl font-bold">チラトラ</h1>
           <p className="text-sm text-muted-foreground">チラシ配布実績の記録・共有アプリ</p>
         </div>
       </div>
@@ -220,7 +220,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setMode("magic")}
-                className="min-h-11 rounded-control text-center text-xs font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="min-h-11 rounded-control text-center text-sm font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 初回の方・パスワード未設定の方はこちら（メールでログイン）
               </button>
@@ -230,7 +230,7 @@ export default function LoginPage() {
               <CheckCircle2 className="size-10 text-success" />
               <p className="text-sm font-bold">ログインリンクを送信しました</p>
               <p className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{magicEmail}</span> 宛のメールを開き、
+                <span className="text-foreground">{magicEmail}</span> 宛のメールを開き、
                 リンクをタップしてください。
                 <br />
                 ※ リンクは<strong>リクエストしたのと同じブラウザ</strong>で開いてください。
@@ -261,11 +261,11 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setMode("password")}
-                className="min-h-11 rounded-control text-center text-xs font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="min-h-11 rounded-control text-center text-sm font-bold text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 パスワードでログインに戻る
               </button>
-              <p className="text-center text-xs text-muted-foreground">
+              <p className="text-center text-sm text-muted-foreground">
                 ログイン後、右上メニューからパスワードを設定できます。
               </p>
             </form>
@@ -304,7 +304,7 @@ export default function LoginPage() {
             <FlaskConical className="size-4 text-demo-field-icon" />
             デモデータを参照する
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             架空のダミーデータに切り替えて表示します。本番データは表示されません。
           </span>
         </span>

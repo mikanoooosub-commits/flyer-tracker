@@ -67,8 +67,8 @@ export function VisitTableRow({
 
   return (
     <tr className={`border-b border-border ${visit.is_deleted ? "bg-deleted" : ""}`}>
-      <td className="whitespace-nowrap px-2 py-2 align-top">{dt}</td>
-      <td className="px-2 py-2 align-top">{target}</td>
+      <td className="px-2 py-2 align-top tabular-nums">{dt}</td>
+      <td className="min-w-28 px-2 py-2 align-top">{target}</td>
       <td className="px-2 py-2 text-right align-top tabular-nums">
         {visit.count != null ? visit.count : "—"}
       </td>

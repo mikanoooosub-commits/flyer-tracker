@@ -50,7 +50,7 @@ export function CooldownSetting({ days }: { days: number }) {
   return (
     <>
       <div className="flex items-center justify-between gap-2 rounded-card border border-border bg-card px-4 py-2 shadow-card">
-        <span className="font-bold">クールダウン: {days}日</span>
+        <span className="font-bold tabular-nums">クールダウン: {days}日</span>
         <Button
           variant="outline"
           size="sm"

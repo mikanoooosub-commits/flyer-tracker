@@ -29,8 +29,8 @@ export function AppHeader({ title, subtitle, backHref, action }: Props) {
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-base font-extrabold leading-tight">{title}</h1>
-          {subtitle && <p className="truncate text-xs text-muted-foreground">{subtitle}</p>}
+          <h1 className="truncate text-base font-bold leading-tight">{title}</h1>
+          {subtitle && <p className="truncate text-sm text-muted-foreground">{subtitle}</p>}
         </div>
         {action === undefined ? <AccountMenu /> : action}
       </div>

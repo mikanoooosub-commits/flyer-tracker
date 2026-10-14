@@ -162,7 +162,7 @@ function HoverMarker({
           {items.length === 0 ? (
             <p className="flyer-history-empty">配布履歴なし</p>
           ) : (
-            <ul className="flyer-history-list">
+            <ul className="flyer-history-list tabular-nums">
               {items.slice(0, 6).map((h, i) => (
                 <li key={i}>
                   <span>{formatDate(h.date)}</span>

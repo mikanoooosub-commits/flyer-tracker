@@ -297,7 +297,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   border-radius: var(--shape-control);
   box-shadow: var(--elevation-map-label);
   padding: 1px 6px;
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-body);
   white-space: nowrap;
@@ -309,7 +309,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 /* ホバー時の履歴プレビュー */
 .flyer-history {
   min-width: 180px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-body);
   cursor: pointer;
 }
@@ -371,7 +371,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 .flyer-school-popup {
   min-width: 140px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--text-body);
 }
 .flyer-school-popup a {
@@ -397,7 +397,7 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 .leaflet-tooltip.flyer-note-tip {
   max-width: 220px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--text-body);
   white-space: normal;
 }

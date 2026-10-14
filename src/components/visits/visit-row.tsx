@@ -86,9 +86,9 @@ export function VisitRow({
       <CardContent className="flex flex-col gap-3">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="font-bold">{formatDate(visit.date)}</p>
+            <p className="font-bold tabular-nums">{formatDate(visit.date)}</p>
             {timeRange && (
-              <p className="flex items-center gap-1 text-xs text-muted-foreground">
+              <p className="flex items-center gap-1 text-sm text-muted-foreground tabular-nums">
                 <Clock className="size-3.5" />
                 {timeRange}
               </p>
@@ -98,7 +98,7 @@ export function VisitRow({
         </div>
 
         <div className="flex flex-col gap-0.5 text-sm">
-          <p className="flex items-center gap-1.5 font-medium">
+          <p className="flex items-center gap-1.5">
             {hasCoords ? (
               <MapPin className="size-4 shrink-0 text-primary" />
             ) : (
@@ -110,7 +110,7 @@ export function VisitRow({
         </div>
 
         <div className="flex items-center gap-3 text-sm">
-          <span className="font-bold">{visit.count != null ? `${visit.count}枚` : "枚数未記入"}</span>
+          <span className="font-bold tabular-nums">{visit.count != null ? `${visit.count}枚` : "枚数未記入"}</span>
           {visit.is_deleted && (
             <Badge variant="outline" className="text-danger">
               削除済み

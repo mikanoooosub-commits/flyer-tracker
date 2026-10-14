@@ -116,7 +116,7 @@ export function SchoolManager({
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="school-url" className="text-xs">
+              <Label htmlFor="school-url" className="text-sm">
                 ホームページURL（任意）
               </Label>
               <Input
@@ -135,7 +135,7 @@ export function SchoolManager({
                 setShowPicker((v) => !v);
                 if (!pos) setPos(DEFAULT_CENTER);
               }}
-              className="flex min-h-11 items-center gap-1 self-start rounded-control text-xs font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="flex min-h-11 items-center gap-1 self-start rounded-control text-sm font-bold text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ChevronDown className={`size-3.5 transition-transform ${showPicker ? "rotate-180" : ""}`} />
               地図で位置を指定（任意）
@@ -149,7 +149,7 @@ export function SchoolManager({
                   onChange={(lat, lng) => setPos({ lat, lng })}
                 />
                 {pos && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
                   </p>
                 )}
@@ -186,19 +186,19 @@ export function SchoolManager({
                 <div className="flex items-center gap-2">
                   <SchoolIcon className="size-4 shrink-0 text-primary" />
                   <div className="flex min-w-0 flex-1 flex-col">
-                    <span className="truncate font-medium">{s.name}</span>
+                    <span className="truncate">{s.name}</span>
                     {s.url ? (
                       <a
                         href={s.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex min-h-11 items-center gap-1 rounded-control text-xs text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="flex min-h-11 items-center gap-1 rounded-control text-sm text-primary hover:underline outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                       >
                         <ExternalLink className="size-3" />
                         ホームページを開く
                       </a>
                     ) : (
-                      <span className="text-xs text-muted-foreground">URL未登録</span>
+                      <span className="text-sm text-muted-foreground">URL未登録</span>
                     )}
                   </div>
                   <span
@@ -234,7 +234,7 @@ export function SchoolManager({
         </ul>
       )}
 
-      <p className="px-1 text-xs text-muted-foreground">
+      <p className="px-1 text-sm text-muted-foreground">
         ※ 座標を設定すると、地図に青いピンで表示され、配布実績の登録時もその付近が中心表示されます。
         <br />
         ※ URLを登録すると、この一覧や地図の青ピンからホームページを別タブで開けます。
@@ -354,7 +354,7 @@ function SchoolEditBody({
       <div className="flex flex-col gap-2">
         <Label>位置（現在地・検索・タップ・ドラッグで指定）</Label>
         <LocationPicker value={pos} center={initial} onChange={(lat, lng) => setPos({ lat, lng })} />
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           緯度 {pos.lat.toFixed(5)} / 経度 {pos.lng.toFixed(5)}
         </p>
       </div>

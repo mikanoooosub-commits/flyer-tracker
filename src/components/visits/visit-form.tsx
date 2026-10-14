@@ -160,7 +160,7 @@ export function VisitForm({
           </SelectContent>
         </Select>
         {selectedLocation && (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+          <p className="flex items-center gap-1 text-sm text-muted-foreground">
             {selectedLocation.lat != null && selectedLocation.lng != null ? (
               <MapPin className="size-3.5 text-primary" />
             ) : (
@@ -215,7 +215,7 @@ export function VisitForm({
               center={mapCenter}
               onChange={(lat, lng) => setLatLng({ lat, lng })}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {latLng
                 ? `緯度 ${latLng.lat.toFixed(5)} / 経度 ${latLng.lng.toFixed(5)}（現在地・タップ・ドラッグで調整）`
                 : "現在地ボタンや地図タップで位置を指定（任意。後から地図で配置も可）"}
